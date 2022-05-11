@@ -2,33 +2,30 @@
 
 void Display::_loop()
 {
-  int test = 0;
-  m_dsp.begin();
-
-  char buf[64];
+  vTaskDelay(pdMS_TO_TICKS(190));
   
-  while(keep_looping){
-    sprintf(buf, "Hello %d!", (test = (++test % 20)));
-    
-    m_dsp.firstPage();
-    do {
-      m_dsp.setFont(u8g2_font_ncenB14_tr);
-      m_dsp.drawStr(0,24, buf);
-    } while(m_dsp.nextPage());
-    
-    delay(1);
-  }
+  char buf[64];
+  sprintf(buf, "Hello %d!", (test = (++test % 20)));
+  
+  m_dsp.firstPage();
+  std::lock_guard<std::mutex> l(custom_text_m);
+  do {
+    m_dsp.setFont(u8g2_font_t0_12b_tr);
+    m_dsp.drawStr(0,24, buf);
+    m_dsp.drawStr(0,48, custom_text.c_str());
+  } while(m_dsp.nextPage());
 }
   
 Display::Display()
-  : m_dsp(U8G2_R0, DISP_CLK_PIN, DISP_DATA_PIN, DISP_RST_PIN)
+  : Async(false), m_dsp(U8G2_R0, DISP_CLK_PIN, DISP_DATA_PIN, DISP_RST_PIN)
 {
-  keep_looping = true;
-  m_thr = std::thread([this]{ _loop(); });
+  m_dsp.begin();
+  delayed_launch();
 }
 
-Display::~Display()
+
+void Display::set_temp_custom_text(const std::string& str)
 {
-  keep_looping = false;
-  if (m_thr.joinable()) m_thr.join();
+  std::lock_guard<std::mutex> l(custom_text_m);
+  custom_text = str;
 }

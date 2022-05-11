@@ -2,8 +2,9 @@
 
 #include <U8g2lib.h>
 #include <Arduino.h>
-#include <thread>
+#include "async.h"
 #include <string>
+#include <mutex>
 
 #ifndef DISP_CLK_PIN
 #define DISP_CLK_PIN 15
@@ -15,15 +16,18 @@
 #define DISP_RST_PIN 16
 #endif
 
-//U8G2_SSD1306_128X64_NONAME_1_SW_I2C u8g2(U8G2_R0, DISP_CLK_PIN, DISP_DATA_PIN, DISP_RST_PIN);
-
-class Display {
+// async
+class Display : public Async {
   U8G2_SSD1306_128X64_NONAME_1_SW_I2C m_dsp;
-  std::thread m_thr;
-  bool keep_looping = false;
 
+  std::string custom_text = "undef";
+  std::mutex custom_text_m;
+
+  int test = 0;
+  
   void _loop();
 public:
-  Display();
-  ~Display();  
+  Display(); 
+
+  void set_temp_custom_text(const std::string&);
 };
