@@ -23,7 +23,7 @@ enum class e_sensor_errors { E_NAN };
 // async
 class Sensor : public Async {
   DHT m_dht;
-  float m_hum = -1.0f, m_hum_d = 0.0f; // perc
+  float m_hum = -1.0f, m_hum_d = 0.0f; // perc, 100.0f == 100%
   float m_tmp = -1.0f, m_tmp_d = 0.0f; // celsius
   float m_heat = 0.0f;
   decltype(std::chrono::system_clock::now()) m_last;

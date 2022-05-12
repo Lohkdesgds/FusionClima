@@ -17,17 +17,17 @@
 #endif
 
 // async
-class Display : public Async {
+class Displayer : public Async {
   U8G2_SSD1306_128X64_NONAME_1_SW_I2C m_dsp;
 
-  std::string custom_text = "undef";
+  std::string custom_text[4];
   std::mutex custom_text_m;
 
   int test = 0;
   
   void _loop();
 public:
-  Display(); 
+  Displayer(); 
 
-  void set_temp_custom_text(const std::string&);
+  void set_temp_custom_text(const std::string&, size_t);
 };
