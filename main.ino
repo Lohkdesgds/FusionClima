@@ -127,19 +127,5 @@ void loop()
     }
   }
     break;
-  }
-  
-  /*delay(980);
-  digitalWrite(ESP_LED, HIGH);
-  delay(20);
-  digitalWrite(ESP_LED, LOW);
-
-  char dummy[48];
-  
-  sprintf(dummy, "%c %.2f|%.3f C ", (had_issue ? '!' : 'K'), sens.get_temperature(), sens.get_temperature_last_delta());
-  disp->set_temp_custom_text(dummy, 0);
-  
-  sprintf(dummy, "%.2f|%.3f H [%.2f] ", sens.get_humidity(), sens.get_humidity_last_delta(), sens.get_heatindex());
-  disp->set_temp_custom_text(dummy, 1);*/
-  
+  }  
 }

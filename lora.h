@@ -12,9 +12,6 @@
 
 namespace LoRaAsync {
   
-  //constexpr size_t lora_max_packs = 50;
-  //enum class lora_current_stat{LORA_RECV, LORA_SEND}; 
-  
   struct package {
     String str;
     int signal_strength = 0; // typ: [0, -120] [dB]
@@ -54,18 +51,5 @@ namespace LoRaAsync {
   bool lora_pop_recv(package&);
 
   size_t lora_recv_length();
-
-  // Rx
-  /*void _i_lora_recv(uint8_t*, uint16_t, int16_t, int8_t);
-  void _i_lora_tx_good();
-  void _i_lora_tx_bad();
-  
-  void lora_init(uint32_t[4]);
-
-  // recv is done async, this pops the latest package, if any.
-  bool lora_pop_recv(package&);
-
-  // send blocks recv afaik
-  bool lora_send(char*, size_t);*/
   
 }
