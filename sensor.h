@@ -42,3 +42,5 @@ public:
   // curr - stored now
   float get_humidity_last_delta() const;
 };
+
+float computeHeatIndex(float temperature, float percentHumidity, bool isFahrenheit);

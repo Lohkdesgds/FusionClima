@@ -24,6 +24,9 @@ void Displayer::mode_send_default()
   
   sprintf(sprintbuf, u8"*%lus", (millis() / 1000));
   m_dsp.drawUTF8(0, 53, sprintbuf);
+  
+  sprintf(sprintbuf, u8"%s", VERSION.c_str());
+  m_dsp.drawUTF8(0, 62, sprintbuf);
 }
 
 void Displayer::mode_recv_default()
@@ -50,7 +53,7 @@ void Displayer::mode_recv_default()
     m_dsp.drawBox(120, 7, 2, 1);
     m_dsp.drawBox(123, 7, 2, 1);
     m_dsp.drawBox(126, 7, 2, 1);
-    m_dsp.drawXBM(104, 0, 8, 8, u8g_fail); // OK sign    
+    m_dsp.drawXBM(104, 0, 8, 8, u8g_fail); // FAIL sign    
   }
 
   if (!timedout) {
@@ -72,7 +75,7 @@ void Displayer::mode_recv_default()
   m_dsp.setFont(u8g2_font_t0_11_te);
 
   if (m_once_set) {
-    switch ((millis() / 2000) % 5){
+    switch ((millis() / 1500) % 5){
     case 0:
       sprintf(sprintbuf, u8"SNR: %.1f dB", m_snr);
       break;
@@ -102,6 +105,9 @@ void Displayer::mode_recv_default()
   case e_display_mode::RECEIVER_HUM:
     sprintf(sprintbuf, u8"HUMIDITY");
     break;
+  case e_display_mode::RECEIVER_HEATINDEX:
+    sprintf(sprintbuf, u8"HEAT INDEX");
+    break;
   case e_display_mode::RECEIVER_LASTTIME:
     sprintf(sprintbuf, u8"LAST TIME");
     break;
@@ -113,13 +119,21 @@ void Displayer::mode_recv_default()
     m_dsp.drawLine((128 - wid) / 2, 31, 128 - ((128 - wid) / 2), 31);
   }
 
-  if (!timedout) {
+  if (m_once_set) {
     switch(m_mode) {
     case e_display_mode::RECEIVER_TEMP:
-      sprintf(sprintbuf, u8"%.2f ºC", m_temp);
+      if (!timedout) sprintf(sprintbuf, u8"%.2f ºC", m_temp);
+      else           sprintf(sprintbuf, u8"%.2f ºC*", m_temp);
       break;
     case e_display_mode::RECEIVER_HUM:
-      sprintf(sprintbuf, u8"%.3f%%", m_hum);
+      if (!timedout) sprintf(sprintbuf, u8"%.3f%%", m_hum);
+      else           sprintf(sprintbuf, u8"%.3f%%*", m_hum);
+      break;
+    case e_display_mode::RECEIVER_HEATINDEX:
+      {
+        if (!timedout) sprintf(sprintbuf, u8"%.2f ºC", computeHeatIndex(m_temp, m_hum, false));
+        else           sprintf(sprintbuf, u8"%.2f ºC*", computeHeatIndex(m_temp, m_hum, false));
+      }
       break;
     case e_display_mode::RECEIVER_LASTTIME:
       {
@@ -135,7 +149,7 @@ void Displayer::mode_recv_default()
     }
   }
   else {
-    sprintf(sprintbuf, "OFFLINE");
+    sprintf(sprintbuf, u8"...");
   }
 
   {
@@ -148,20 +162,29 @@ void Displayer::mode_recv_default()
 void Displayer::_loop()
 {
   vTaskDelay(pdMS_TO_TICKS(90));
+
+  if (sleepin) {
+    m_dsp.clearDisplay();
+    vTaskDelay(pdMS_TO_TICKS(490));
+    return;
+  }
   
-  m_dsp.firstPage();
-  do {
-    switch(m_mode) {
-    case e_display_mode::RECEIVER_TEMP:
-    case e_display_mode::RECEIVER_HUM:
-    case e_display_mode::RECEIVER_LASTTIME:
-      mode_recv_default();
-      break;
-    case e_display_mode::SENDER_DEFAULT:
-      mode_send_default();
-      break;
-    }
-  } while(m_dsp.nextPage());
+  m_dsp.clearBuffer();
+  //m_dsp.firstPage();
+  //do {
+  switch(m_mode) {
+  case e_display_mode::RECEIVER_TEMP:
+  case e_display_mode::RECEIVER_HUM:
+  case e_display_mode::RECEIVER_LASTTIME:
+  case e_display_mode::RECEIVER_HEATINDEX:
+    mode_recv_default();
+    break;
+  case e_display_mode::SENDER_DEFAULT:
+    mode_send_default();
+    break;
+  }
+  //} while(m_dsp.nextPage());
+  m_dsp.sendBuffer();
 }
 
 Displayer::Displayer()
@@ -184,6 +207,9 @@ void Displayer::next_mode()
     m_mode = e_display_mode::RECEIVER_HUM;
     break;
   case e_display_mode::RECEIVER_HUM:
+    m_mode = e_display_mode::RECEIVER_HEATINDEX;
+    break;
+  case e_display_mode::RECEIVER_HEATINDEX:
     m_mode = e_display_mode::RECEIVER_LASTTIME;
     break;
   case e_display_mode::RECEIVER_LASTTIME:
@@ -212,6 +238,11 @@ void Displayer::sender(unsigned long time_send, float temp, float hum, int gain)
   m_gain = gain;
   m_last_upd = millis();
   sending_at = millis() + time_send;
+}
+
+void Displayer::sleeping(bool sleeps)
+{
+  sleepin = sleeps;
 }
 
 /*void Displayer::_loop()

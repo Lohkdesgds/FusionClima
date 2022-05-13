@@ -2,6 +2,7 @@
 
 #include <U8g2lib.h>
 #include <Arduino.h>
+#include "sensor.h"
 #include "async.h"
 #include <string>
 #include <mutex>
@@ -20,13 +21,13 @@
 #include "shared.h"
 #include "display_bitmaps.h"
 
-enum class e_display_mode {RECEIVER_TEMP,RECEIVER_HUM,RECEIVER_LASTTIME,SENDER_DEFAULT};
+enum class e_display_mode {RECEIVER_TEMP,RECEIVER_HUM,RECEIVER_HEATINDEX,RECEIVER_LASTTIME,SENDER_DEFAULT};
 
 constexpr decltype(millis()) max_timeout = 15000; // msec
 
 // async
 class Displayer : public Async {
-  U8G2_SSD1306_128X64_NONAME_1_SW_I2C m_dsp;
+  U8G2_SSD1306_128X64_NONAME_F_SW_I2C m_dsp;
 
   e_display_mode m_mode = e_display_mode::RECEIVER_TEMP;
 
@@ -43,6 +44,7 @@ class Displayer : public Async {
   decltype(millis()) m_last_upd = 0;
   float m_temp = 25.6f; // celsius
   float m_hum = 69.0f; // perc
+  bool sleepin = false;
 
   void mode_send_default();
   void mode_recv_default();
@@ -58,4 +60,6 @@ public:
 
   void receiver(int rssi, float snr, float temp, float hum);
   void sender(unsigned long time_send, float temp, float hum, int gain);
+
+  void sleeping(bool);
 };
