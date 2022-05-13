@@ -1,13 +1,12 @@
 #include "sensor.h"
 #include "display.h"
 #include "protocol.h"
+#include "shared.h"
 
 // useful: https://resource.heltec.cn/download/WiFi_LoRa_32/WIFI_LoRa_32_V2.pdf
 
 //uint32_t LORA_WITH_SENSOR_LICENSE[4] = {0x3CFF7D63,0xAC4833CE,0xA7C0C3F4,0x5C46868C};
 //uint32_t LORA_LISTENING_NO_READING[4] = {0x1701DDF6,0x0A7003DB,0x91DE8C37,0x6459DE6F};
-
-const std::string VERSION = "V1.0_2205121613";
 
 constexpr int32_t ESP_MODE_PIN = 17;
 constexpr int32_t ESP_LED = 25;
@@ -112,8 +111,9 @@ void loop()
     if (pk.err == e_protocol_err::NONE) {
       disp->set_temp_custom_text("Success!", 1);
       {
-        char buf[30];
-        sprintf(buf, "%.1f|%.1fC %.1f|%.1f%c", pk.dat.temp, pk.dat.temp_d, pk.dat.humd, pk.dat.humd_d, '%');
+        char buf[50];
+        //sprintf(buf, "%.1f|%.1fC %.1f|%.1f%c", pk.dat.temp, pk.dat.temp_d, pk.dat.humd, pk.dat.humd_d, '%');
+        sprintf(buf, "%.1fC %.0f%c %i|%.1f", pk.dat.temp, pk.dat.humd, '%', pk.signal_strength, pk.snr);
         disp->set_temp_custom_text(buf, 3);
       }
       disp->set_temp_custom_text("", 2);

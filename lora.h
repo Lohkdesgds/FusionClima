@@ -7,6 +7,7 @@
 #include <thread>
 #include <chrono>
 
+#define POWER 20 // [2..20]
 #define BAND    ((long)915E6)  //you can set band here directly,e.g. 868E6,915E6
 #define SYNC_WORD 0x3F // [0x00 - 0xFF]
 
@@ -14,7 +15,7 @@ namespace LoRaAsync {
   
   struct package {
     String str;
-    int signal_strength = 0; // typ: [0, -120] [dB]
+    int signal_strength = 0; // typ: [0, -120] [dB], test says [-25, -100] -- prob -40, -60, -75, -85, -100 and off
     float snr = 0; // typ: [-20, 10] [dB]
 
     package() = default;

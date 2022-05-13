@@ -17,8 +17,8 @@ struct protocol {
 struct protocol_extra {
   protocol dat;
   e_protocol_err err = e_protocol_err::NONE;
-  int16_t signal_strength = 0; // typ: [0, -120] [dB]
-  int8_t snr = 0; // typ: [-20, 10] [dB]
+  int signal_strength = 0; // typ: [0, -120] [dB]
+  float snr = 0; // typ: [-20, 10] [dB]
 };
 
 bool send_pack(protocol&);

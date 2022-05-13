@@ -60,6 +60,11 @@ namespace LoRaAsync {
     }
     _g_lora.last_pack.signal_strength = LoRa.packetRssi();
     _g_lora.last_pack.snr = LoRa.packetSnr();
+
+    Serial.print("RSSI: ");
+    Serial.print(_g_lora.last_pack.signal_strength);
+    Serial.print(" SNR: ");
+    Serial.println(_g_lora.last_pack.snr);
     _g_lora.has_pack = true;
   }
 
@@ -87,7 +92,7 @@ namespace LoRaAsync {
     }
     std::lock_guard<std::mutex> l(_g_lora.mtx);
     if (!LoRa.beginPacket()) return false;
-    LoRa.setTxPower(20,RF_PACONFIG_PASELECT_PABOOST); // max
+    LoRa.setTxPower(POWER, RF_PACONFIG_PASELECT_PABOOST); // max
     size_t _sent = LoRa.write((uint8_t*)dat, len);
     const bool gud = LoRa.endPacket() && _sent == len;    
     LoRa.receive();
@@ -99,7 +104,7 @@ namespace LoRaAsync {
     std::lock_guard<std::mutex> l(_g_lora.mtx);
     if (!_g_lora.has_pack) return false;
     _g_lora.has_pack = false;
-    pk = std::move(_g_lora.last_pack);
+    pk = std::move(_g_lora.last_pack);    
     return true;
   }
   
