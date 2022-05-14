@@ -10,15 +10,15 @@ void setup_battery()
 float read_battery_perc(bool limit_range)
 {
   //digitalWrite(VEXT_ENABLE_PIN, LOW);
-  delay(8);  
+  //delay(8);  
   float sum = 0.0f;
   for(unsigned p = 0; p < VBATT_SMOOTH_DEF; ++p) {
-    delay(2);
+    delay(25);
     sum += analogRead(VBATT_READ_PIN);
   }
   //digitalWrite(VEXT_ENABLE_PIN, HIGH);  
 
-  sum /= VBATT_SMOOTH_DEF;
+  sum /= 1.0f * VBATT_SMOOTH_DEF;
   
   float _val = (map((long)(sum * (float)VBATT_PRECISION), 1600 * VBATT_PRECISION, 2020 * VBATT_PRECISION, 0, 100 * VBATT_PRECISION) * 1.0f / VBATT_PRECISION);
 
@@ -51,7 +51,7 @@ float read_battery_perc(bool limit_range)
   }
 
   
-  if (_val > 100.0f) {
+  if (_val > 103.0f) {
     _battinf.chargin = true;
   }
   else {

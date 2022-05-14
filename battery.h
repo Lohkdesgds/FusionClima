@@ -6,12 +6,12 @@
 
 #define VBATT_READ_PIN  13
 #define VEXT_ENABLE_PIN 21
-#define VBATT_SMOOTH_DEF 16
+#define VBATT_SMOOTH_DEF 10
 #define VBATT_PRECISION 100 // 100 -> 2 decimals
 
 #define VBATT_SMOOTH_QUICK 0.5f
-#define VBATT_SMOOTH_SLOW 30.0f
-#define VBATT_MIN_CERTAIN 1.25f
+#define VBATT_SMOOTH_SLOW 200.0f
+#define VBATT_MIN_CERTAIN 2.75f
 
 /*#define VBATT_CLEAR_DROP_CHANGE 1.5f
 #define VBATT_AVG_ADPT 0.5f // pt for old val
