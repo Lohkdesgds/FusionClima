@@ -121,7 +121,7 @@ void async_stuff_do()
 
 void update_bat()
 {
-  if (millis() - last_batt_upd > 2000) {
+  if (millis() - last_batt_upd > 1000) {
     float _f = read_battery_perc(true);
     last_batt_upd = millis();
 

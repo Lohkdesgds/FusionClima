@@ -8,13 +8,22 @@
 #define VEXT_ENABLE_PIN 21
 #define VBATT_SMOOTH_DEF 16
 #define VBATT_PRECISION 100 // 100 -> 2 decimals
-//#define COEF_F_DISCHARGE_TEST 0.75f // 7.5 decimals
+
+#define VBATT_SMOOTH_QUICK 0.5f
+#define VBATT_SMOOTH_SLOW 30.0f
+#define VBATT_MIN_CERTAIN 1.25f
+
+/*#define VBATT_CLEAR_DROP_CHANGE 1.5f
 #define VBATT_AVG_ADPT 0.5f // pt for old val
 #define VBATT_LIMIT_TENDENCY 5
+#define VBATT_OVERFLOW_CERTAIN 100*/
 
 struct battinf {
   float last_read = -9999.9f;
-  int tendency = -3; // max -20/20, if ++, goes up, else goes down.
+  float last_read_smooth = -9999.9f;
+  bool chargin = false;
+  //int tendency = -10; // max -20/20, if ++, goes up, else goes down.
+  //int has_clear_vision = 0; // 1 charging, -1 not charging
 };
 
 static battinf _battinf;
