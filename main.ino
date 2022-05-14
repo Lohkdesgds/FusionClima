@@ -3,6 +3,7 @@
 #include "protocol.h"
 #include "shared.h"
 #include "button.h"
+#include "battery.h"
 
 // useful: https://resource.heltec.cn/download/WiFi_LoRa_32/WIFI_LoRa_32_V2.pdf
 
@@ -17,67 +18,59 @@ enum class ESP_MODE { SENSOR, LISTENER };
 bool had_issue = false;
 bool was_awake = false;
 bool next_shutdown = false;
+decltype(millis()) last_batt_upd = 0;
 
 Displayer* disp = nullptr;
 ESP_MODE work_as = ESP_MODE::SENSOR;
 Sensor sens([](e_sensor_errors issue){had_issue = true;});
+std::thread async_stuff; // valid for receiver
 
-void shutdown_do()
-{
-  next_shutdown = true;
-}
-
-void change_mode()
-{
-  if (disp) {
-    disp->next_mode();
-    disp->sleeping(false);
-  }
-}
+void async_stuff_do();
+void update_bat();
+void shutdown_do();
+void change_mode();
 
 void setup()
 {
-  Serial.begin(115200);
-  pinMode(ESP_MODE_PIN, INPUT_PULLUP);
-  pinMode(ESP_LED, OUTPUT);
-
-  digitalWrite(ESP_LED, HIGH);  
-  delay(500);
-  digitalWrite(ESP_LED, LOW);
+  //Serial.begin(115200);
+    
+  if (!was_awake || disp) {
+    pinMode(ESP_MODE_PIN, INPUT_PULLUP);
+    pinMode(ESP_LED, OUTPUT);
   
-  on_button_single(change_mode);
-  on_button_double(shutdown_do);
-  setup_button();
-  
-  if (!was_awake) {    
+    digitalWrite(ESP_LED, HIGH);  
+    delay(500);
+    digitalWrite(ESP_LED, LOW);
+    
     work_as = digitalRead(ESP_MODE_PIN) != HIGH ? ESP_MODE::SENSOR : ESP_MODE::LISTENER;
   
     disp = new Displayer();
     disp->set_mode(work_as == ESP_MODE::SENSOR ? e_display_mode::SENDER_DEFAULT : e_display_mode::RECEIVER_TEMP);
-    //attachInterrupt(PRG_BTN, change_mode, FALLING);
+    
+    if (work_as == ESP_MODE::LISTENER) {
+      setup_battery();
+      on_button_single(change_mode);
+      on_button_double(shutdown_do);
+      setup_button();
+      async_stuff = std::thread(async_stuff_do);
+    }
       
-    Serial.print("Started device ID ");
-    Serial.println(LoRaAsync::lora_get_mac_str().c_str());
+    //Serial.print("Started device ID ");
+    //Serial.println(LoRaAsync::lora_get_mac_str().c_str());
     
     LoRaAsync::lora_init();
   }
   else {
+    digitalWrite(ESP_LED, HIGH);  
+    delay(200);
+    digitalWrite(ESP_LED, LOW);
     disp->sleeping(false);
     LoRaAsync::lora_init();
   }
 }
 
 void loop()
-{
-  if (next_shutdown) {
-    next_shutdown = false;
-    if (disp) {
-      disp->sleeping(true);
-    }
-    prepare_button_deep_sleep();
-    esp_deep_sleep_start();
-  }
-  
+{  
   switch(work_as) {
   case ESP_MODE::SENSOR:
   {
@@ -92,43 +85,59 @@ void loop()
     disp->sender(time_send * 1000, pkg.temp, pkg.humd, POWER);
     delay(time_send * 1000);
     send_pack(pkg);
-
-    /*if (send_pack(pkg)) {
-      disp->set_temp_custom_text("Success! (emit)", 2);
-      delay(1000);
-    }
-    else {
-      disp->set_temp_custom_text("Failed! (emit)", 2);
-      delay(1000);
-    }*/
   }
     break;
   case ESP_MODE::LISTENER:
-  {   
+  {
     protocol_extra pk;
     if (try_get_pack(pk)) {
 
       if (pk.err == e_protocol_err::NONE) {
-        /*disp->set_temp_custom_text("Success!", 1);
-        {
-          char buf[50];
-          //sprintf(buf, "%.1f|%.1fC %.1f|%.1f%c", pk.dat.temp, pk.dat.temp_d, pk.dat.humd, pk.dat.humd_d, '%');
-          sprintf(buf, "%.1fC %.0f%c %i|%.1f", pk.dat.temp, pk.dat.humd, '%', pk.signal_strength, pk.snr);
-          disp->set_temp_custom_text(buf, 3);
-        }
-        disp->set_temp_custom_text("", 2);
-        delay(1000);*/
         disp->receiver(pk.signal_strength, pk.snr, pk.dat.temp, pk.dat.humd);
       }
-      /*else {
-        disp->set_temp_custom_text("...", 1);
-        char dummy[48];
-        sprintf(dummy, "[@%ld] ERROR: %d", millis(), (int)pk.err);
-        disp->set_temp_custom_text(dummy, 2);
-      }*/
     }
-    delay(100);
+    delay(250);
   }
     break;
-  }  
+  }
+}
+
+void async_stuff_do()
+{
+  while(1) {
+    update_bat();
+    
+    if (next_shutdown) {
+      next_shutdown = false;
+      if (disp) {
+        disp->sleeping(true);
+      }
+      prepare_button_deep_sleep();
+      esp_deep_sleep_start();
+    }
+    delay(250);
+  }
+}
+
+void update_bat()
+{
+  if (millis() - last_batt_upd > 2000) {
+    float _f = read_battery_perc(true);
+    last_batt_upd = millis();
+
+    disp->set_battery(_f, get_battery_charging());
+  }
+}
+
+void shutdown_do()
+{
+  next_shutdown = true;
+}
+
+void change_mode()
+{
+  if (disp) {
+    disp->next_mode();
+    disp->sleeping(false);
+  }
 }

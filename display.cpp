@@ -35,25 +35,49 @@ void Displayer::mode_recv_default()
   const bool timedout = (millis() > (m_last_upd + max_timeout)) || (millis() < (m_last_upd - max_timeout));
   static char sprintbuf[64];
 
-  if (!timedout) {
-    m_dsp.drawBox(114, 6, 2, 2);
-    if (m_rssi >= -100.0f) m_dsp.drawBox(117, 5, 2, 3);
-    else                   m_dsp.drawBox(117, 7, 2, 1);
-    if (m_rssi >= -85.0f)  m_dsp.drawBox(120, 3, 2, 5);
-    else                   m_dsp.drawBox(120, 7, 2, 1);
-    if (m_rssi >= -65.0f)  m_dsp.drawBox(123, 1, 2, 7);
-    else                   m_dsp.drawBox(123, 7, 2, 1);
-    if (m_rssi >= -40.0f)  m_dsp.drawBox(126, 0, 2, 8);
-    else                   m_dsp.drawBox(126, 7, 2, 1);
-    m_dsp.drawXBM(104, 0, 8, 8, u8g_ok); // OK sign
-  }
-  else {
-    m_dsp.drawBox(114, 7, 2, 1);
-    m_dsp.drawBox(117, 7, 2, 1);
-    m_dsp.drawBox(120, 7, 2, 1);
-    m_dsp.drawBox(123, 7, 2, 1);
-    m_dsp.drawBox(126, 7, 2, 1);
-    m_dsp.drawXBM(104, 0, 8, 8, u8g_fail); // FAIL sign    
+  switch ((millis() / 3000) % 2){
+  case 0:
+    if (!timedout) {
+      m_dsp.drawBox(114, 6, 2, 2);
+      if (m_rssi >= -100.0f) m_dsp.drawBox(117, 5, 2, 3);
+      else                   m_dsp.drawBox(117, 7, 2, 1);
+      if (m_rssi >= -85.0f)  m_dsp.drawBox(120, 3, 2, 5);
+      else                   m_dsp.drawBox(120, 7, 2, 1);
+      if (m_rssi >= -65.0f)  m_dsp.drawBox(123, 1, 2, 7);
+      else                   m_dsp.drawBox(123, 7, 2, 1);
+      if (m_rssi >= -40.0f)  m_dsp.drawBox(126, 0, 2, 8);
+      else                   m_dsp.drawBox(126, 7, 2, 1);
+      m_dsp.drawXBM(104, 0, 8, 8, u8g_ok); // OK sign
+    }
+    else {
+      m_dsp.drawBox(114, 7, 2, 1);
+      m_dsp.drawBox(117, 7, 2, 1);
+      m_dsp.drawBox(120, 7, 2, 1);
+      m_dsp.drawBox(123, 7, 2, 1);
+      m_dsp.drawBox(126, 7, 2, 1);
+      m_dsp.drawXBM(104, 0, 8, 8, u8g_fail); // FAIL sign    
+    }
+    break;
+  case 1:
+    if (!m_battery_charging) {
+      m_dsp.drawLine(104, 0, 126, 0);
+      m_dsp.drawLine(104, 8, 126, 8);
+      m_dsp.drawLine(104, 0, 104, 8);
+      m_dsp.drawLine(126, 0, 126, 8);
+      m_dsp.drawLine(127, 2, 127, 5);
+      
+      m_dsp.drawBox(106, 2, map(m_battery_level, 0, 100, 1, 19), 5);
+    }
+    else {
+      m_dsp.drawXBM(104, 0, 8, 8, u8g_charge); // CHARGE sign
+      m_dsp.drawLine(114, 0, 126, 0);
+      m_dsp.drawLine(114, 8, 126, 8);
+      m_dsp.drawLine(114, 0, 114, 8);
+      m_dsp.drawLine(126, 0, 126, 8);
+      m_dsp.drawLine(127, 2, 127, 5);
+      m_dsp.drawBox(116, 2, m_battery_level >= 100.0f ? 9 : map(m_battery_level, 0, 100, 1, 8), 5);
+    }
+    break;
   }
 
   if (!timedout) {
@@ -75,7 +99,7 @@ void Displayer::mode_recv_default()
   m_dsp.setFont(u8g2_font_t0_11_te);
 
   if (m_once_set) {
-    switch ((millis() / 1500) % 5){
+    switch ((millis() / 1500) % 6){
     case 0:
       sprintf(sprintbuf, u8"SNR: %.1f dB", m_snr);
       break;
@@ -87,6 +111,10 @@ void Displayer::mode_recv_default()
       break;
     case 3:
       sprintf(sprintbuf, u8"%s", VERSION.c_str());
+      break;
+    case 4:
+      if (m_battery_charging) sprintf(sprintbuf, u8"BATT: %.2f%% [C]", m_battery_level);
+      else                    sprintf(sprintbuf, u8"BATT: %.2f%%", m_battery_level);
       break;
     default:
       sprintf(sprintbuf, u8"HUM: %.2f%%", m_hum);
@@ -245,36 +273,10 @@ void Displayer::sleeping(bool sleeps)
   sleepin = sleeps;
 }
 
-/*void Displayer::_loop()
+void Displayer::set_battery(float perccent, bool charg)
 {
-  vTaskDelay(pdMS_TO_TICKS(90));
-  
-  char buf[64];
-  sprintf(buf, "Hello %d!", (test = (++test % 100)));
-  
-  m_dsp.firstPage();
-  std::lock_guard<std::mutex> l(custom_text_m);
-  do {
-    m_dsp.setFont(u8g2_font_t0_12b_tr);
-    m_dsp.drawStr(0,10, buf);
-    m_dsp.drawStr(0,20, custom_text[0].c_str());
-    m_dsp.drawStr(0,30, custom_text[1].c_str());
-    m_dsp.drawStr(0,40, custom_text[2].c_str());
-    m_dsp.drawStr(0,50, custom_text[3].c_str());
-  } while(m_dsp.nextPage());
+  m_battery_level = perccent;
+  if (m_battery_level < 0.0f) m_battery_level = 0.0f;
+  if (m_battery_level > 100.0f) m_battery_level = 100.0f;
+  m_battery_charging = charg;
 }
-  
-Displayer::Displayer()
-  : Async(false), m_dsp(U8G2_R0, DISP_CLK_PIN, DISP_DATA_PIN, DISP_RST_PIN)
-{
-  m_dsp.begin();
-  delayed_launch();
-}
-
-
-void Displayer::set_temp_custom_text(const std::string& str, size_t p)
-{
-  if (p > 3) return;
-  std::lock_guard<std::mutex> l(custom_text_m);
-  custom_text[p] = str;
-}*/

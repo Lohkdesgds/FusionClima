@@ -61,10 +61,6 @@ namespace LoRaAsync {
     _g_lora.last_pack.signal_strength = LoRa.packetRssi();
     _g_lora.last_pack.snr = LoRa.packetSnr();
 
-    /*Serial.print("RSSI: ");
-    Serial.print(_g_lora.last_pack.signal_strength);
-    Serial.print(" SNR: ");
-    Serial.println(_g_lora.last_pack.snr);*/
     _g_lora.has_pack = true;
   }
 

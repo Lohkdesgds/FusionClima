@@ -34,6 +34,8 @@ class Displayer : public Async {
   // RECEIVER
   int m_rssi = 20; // dB
   float m_snr = 0.0f; // dB
+  float m_battery_level = 20.0f; // [0.0..100.0]
+  bool m_battery_charging = false;
   bool m_once_set = false;
 
   // SENDER
@@ -62,4 +64,6 @@ public:
   void sender(unsigned long time_send, float temp, float hum, int gain);
 
   void sleeping(bool);
+
+  void set_battery(float perccent, bool charg);
 };

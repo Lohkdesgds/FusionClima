@@ -2,4 +2,4 @@
 
 #include <string>
 
-const std::string VERSION = "V1.1_2205130234";
+const std::string VERSION = "V1.2_220514001";
