@@ -20,50 +20,38 @@
 
 #include "shared.h"
 #include "display_bitmaps.h"
+#include "cpu_tools.h"
 
 enum class e_display_mode {RECEIVER_TEMP,RECEIVER_HUM,RECEIVER_HEATINDEX,RECEIVER_LASTTIME,SENDER_DEFAULT};
 
-constexpr decltype(millis()) max_timeout = 15000; // msec
+struct display_data {
+  unsigned long long last_received = 0; // expects get_time_ms()
+  float cpu_usage_perc = 0.0f; // expect [0.0..1.0]
+  float ram_free_perc = 0.0f; // expect [1.0..0.0]
+  uint16_t signals_received = 0; // expect [0..99]
+  uint16_t signal_rssi = 0; // expects [0..100], inverse of rssi
+  float batt_perc = 0.0f; // expects [0.0..1.0]
+  bool debug_literal = false; // shows raw text instead of icons
+};
 
-// async
-class Displayer : public Async {
-  U8G2_SSD1306_128X64_NONAME_F_SW_I2C m_dsp;
-
-  e_display_mode m_mode = e_display_mode::RECEIVER_TEMP;
-
-  // RECEIVER
-  int m_rssi = 20; // dB
-  float m_snr = 0.0f; // dB
-  float m_battery_level = 20.0f; // [0.0..100.0]
-  bool m_battery_charging = false;
-  bool m_once_set = false;
-
-  // SENDER
-  decltype(millis()) sending_at = 0;
-  int m_gain = 2; // dB
-
-  // COMMON
-  decltype(millis()) m_last_upd = 0;
-  float m_temp = 25.6f; // celsius
-  float m_hum = 69.0f; // perc
-  bool sleepin = false;
-
-  void mode_send_default();
-  void mode_recv_default();
+class Displayer {
+  U8G2_SSD1306_128X64_NONAME_F_SW_I2C* m_dsp = nullptr;
   
-  void _loop();
+  display_data m_data;
+
+  // if not debug_literal:
+  void draw_top();
+  void draw_bottom();
+
+  // if debug_literal:
+  void draw_debug();
+
+  void flip();
 public:
-  Displayer(); 
-
-  void set_mode(e_display_mode);
-
-  // based on RECV/SEND mode
-  void next_mode();
-
-  void receiver(int rssi, float snr, float temp, float hum);
-  void sender(unsigned long time_send, float temp, float hum, int gain);
-
-  void sleeping(bool);
-
-  void set_battery(float perccent, bool charg);
+  ~Displayer();
+  
+  display_data& get();
+  
+  void draw();
+  void destroy();
 };

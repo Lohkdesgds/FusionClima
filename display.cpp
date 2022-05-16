@@ -1,282 +1,91 @@
 #include "display.h"
 
-void Displayer::mode_send_default()
+void Displayer::draw_top()
 {
-  static char sprintbuf[64];
-  
-  m_dsp.setFont(u8g2_font_t0_11_te);
-  
-  sprintf(sprintbuf, u8"Sender mode | %i dB", m_gain);    
-  m_dsp.drawUTF8(0, 8, sprintbuf);
-  
-  sprintf(sprintbuf, u8"Temp: %.2f ºC", m_temp);
-  m_dsp.drawUTF8(0, 17, sprintbuf);
+  static char dmp[64];
+  m_dsp->drawXBM(0, 0, 128, 6, u8g_topbar2);
 
-  sprintf(sprintbuf, u8"Humidity: %.2f%%", m_hum);
-  m_dsp.drawUTF8(0, 26, sprintbuf); 
+  //m_data
+  /*
+  unsigned long long last_received = 0; // expects get_time_ms()
+  float cpu_usage_perc = 0.0f; // expect [0.0..1.0]
+  float ram_free_perc = 0.0f; // expect [1.0..0.0]
+  uint16_t signals_received = 0; // expect [0..99]
+  uint16_t signal_rssi = 0; // expects [0..100], inverse of rssi
+  float batt_perc = 0.0f; // expects [0.0..1.0]
+  */
+  m_dsp->setFont(u8g2_font_tiny_simon_tr); 
 
-  if (sending_at > millis()) sprintf(sprintbuf, u8"Sending in %.1f...", ((sending_at - millis()) * 1.0f / 1000.0f));
-  else sprintf(sprintbuf, u8"Sended.");
-  m_dsp.drawUTF8(0, 35, sprintbuf);  
+  // CPU USAGE
+  sprintf(dmp, "%04.1f%%", 99.9f * get_cpu_usage());
+  m_dsp->drawUTF8(0, 5, dmp); // CPU USAGE
+
+  // RAM USAGE
+  sprintf(dmp, "%04.1f%%", 99.9f * get_ram_usage());  
+  m_dsp->drawUTF8(24, 5, dmp); 
   
-  sprintf(sprintbuf, u8"UT50d:");
-  m_dsp.drawUTF8(0, 44, sprintbuf);
+  m_dsp->drawUTF8(43, 5, "88"); // DEVICES ECHOING (TRANSMITTERS RECEIVED)
+  m_dsp->drawUTF8(56, 5, "88"); // TIME SINCE LAST RECV (minutes)
+  m_dsp->drawUTF8(68, 5, "188dB"); // LAST BEST SIGNAL (-dB)
+  m_dsp->drawUTF8(113, 5, "188%%"); // BATTERY PERC [0..100]  
+  m_dsp->drawLine(109, 2, 105, 2);  // BATTERY BAR
+  m_dsp->drawBox(89, 3, 2, 1); // LOW  BAR SIGNAL
+  m_dsp->drawBox(92, 2, 2, 2); // ...  BAR SIGNAL
+  m_dsp->drawBox(95, 1, 2, 3); // ...  BAR SIGNAL
+  m_dsp->drawBox(98, 0, 2, 4); // HIGH BAR SIGNAL
   
-  sprintf(sprintbuf, u8"*%lus", (millis() / 1000));
-  m_dsp.drawUTF8(0, 53, sprintbuf);
-  
-  sprintf(sprintbuf, u8"%s", VERSION.c_str());
-  m_dsp.drawUTF8(0, 62, sprintbuf);
+  m_dsp->drawLine(0, 7, 128, 7);  
 }
 
-void Displayer::mode_recv_default()
+void Displayer::draw_bottom()
 {
-  // bars
-  const bool timedout = (millis() > (m_last_upd + max_timeout)) || (millis() < (m_last_upd - max_timeout));
-  static char sprintbuf[64];
+}
 
-  switch ((millis() / 3000) % 2){
-  case 0:
-    if (!timedout) {
-      m_dsp.drawBox(114, 6, 2, 2);
-      if (m_rssi >= -100.0f) m_dsp.drawBox(117, 5, 2, 3);
-      else                   m_dsp.drawBox(117, 7, 2, 1);
-      if (m_rssi >= -85.0f)  m_dsp.drawBox(120, 3, 2, 5);
-      else                   m_dsp.drawBox(120, 7, 2, 1);
-      if (m_rssi >= -65.0f)  m_dsp.drawBox(123, 1, 2, 7);
-      else                   m_dsp.drawBox(123, 7, 2, 1);
-      if (m_rssi >= -40.0f)  m_dsp.drawBox(126, 0, 2, 8);
-      else                   m_dsp.drawBox(126, 7, 2, 1);
-      m_dsp.drawXBM(104, 0, 8, 8, u8g_ok); // OK sign
-    }
-    else {
-      m_dsp.drawBox(114, 7, 2, 1);
-      m_dsp.drawBox(117, 7, 2, 1);
-      m_dsp.drawBox(120, 7, 2, 1);
-      m_dsp.drawBox(123, 7, 2, 1);
-      m_dsp.drawBox(126, 7, 2, 1);
-      m_dsp.drawXBM(104, 0, 8, 8, u8g_fail); // FAIL sign    
-    }
-    break;
-  case 1:
-    if (!m_battery_charging) {
-      m_dsp.drawLine(104, 0, 126, 0);
-      m_dsp.drawLine(104, 8, 126, 8);
-      m_dsp.drawLine(104, 0, 104, 8);
-      m_dsp.drawLine(126, 0, 126, 8);
-      m_dsp.drawLine(127, 2, 127, 5);
-      
-      m_dsp.drawBox(106, 2, map(m_battery_level, 0, 100, 1, 19), 5);
-    }
-    else {
-      m_dsp.drawXBM(104, 0, 8, 8, u8g_charge); // CHARGE sign
-      m_dsp.drawLine(114, 0, 126, 0);
-      m_dsp.drawLine(114, 8, 126, 8);
-      m_dsp.drawLine(114, 0, 114, 8);
-      m_dsp.drawLine(126, 0, 126, 8);
-      m_dsp.drawLine(127, 2, 127, 5);
-      m_dsp.drawBox(116, 2, m_battery_level >= 100.0f ? 9 : map(m_battery_level, 0, 100, 1, 8), 5);
-    }
-    break;
+void Displayer::draw_debug()
+{
+  
+}
+
+void Displayer::flip()
+{
+  if (m_dsp) {
+    m_dsp->sendBuffer();
+    m_dsp->clearBuffer();
   }
+}
 
-  if (!timedout) {
-    float prop = (millis() - m_last_upd) * 1.0f / max_timeout;
-    if (prop < 0.0f) prop = 0.0f;
-    if (prop > 1.0f) prop = 1.0f;
-    int first = (int)(128 * prop) - 3;
-    if (first < 0) first = 0;
+Displayer::~Displayer()
+{
+  destroy();
+}
+
+display_data& Displayer::get()
+{
+  return m_data;
+}
+
+void Displayer::draw()
+{
+  if (!m_dsp) {
+    m_dsp = new U8G2_SSD1306_128X64_NONAME_F_SW_I2C(U8G2_R0, DISP_CLK_PIN, DISP_DATA_PIN, DISP_RST_PIN);
+    m_dsp->begin();
+    m_dsp->enableUTF8Print();
+  }
+  if (m_data.debug_literal) {
+    draw_top();
     
-    m_dsp.drawLine(0, 13, first, 13);
-    m_dsp.drawLine((int)(128 * prop), 13, 128, 13);
   }
   else {
-    m_dsp.drawLine(0, 12, 128, 12);
-    m_dsp.drawLine(0, 14, 128, 14);
+    draw_top();
+    draw_bottom();
   }
-  
-
-  m_dsp.setFont(u8g2_font_t0_11_te);
-
-  if (m_once_set) {
-    switch ((millis() / 1500) % 6){
-    case 0:
-      sprintf(sprintbuf, u8"SNR: %.1f dB", m_snr);
-      break;
-    case 1:
-      sprintf(sprintbuf, u8"GAIN: %i dB", m_rssi);
-      break;
-    case 2:
-      sprintf(sprintbuf, u8"TEMP: %.2f ºC", m_temp);
-      break;
-    case 3:
-      sprintf(sprintbuf, u8"%s", VERSION.c_str());
-      break;
-    case 4:
-      if (m_battery_charging) sprintf(sprintbuf, u8"BATT: %.2f%% [C]", m_battery_level);
-      else                    sprintf(sprintbuf, u8"BATT: %.2f%%", m_battery_level);
-      break;
-    default:
-      sprintf(sprintbuf, u8"HUM: %.2f%%", m_hum);
-      break;
-    }  
-  }
-  else {
-      sprintf(sprintbuf, u8"Waiting...");
-  }
-  m_dsp.drawUTF8(0, 8, sprintbuf);
-
-  switch(m_mode) {
-  case e_display_mode::RECEIVER_TEMP:
-    sprintf(sprintbuf, u8"TEMPERATURE");
-    break;
-  case e_display_mode::RECEIVER_HUM:
-    sprintf(sprintbuf, u8"HUMIDITY");
-    break;
-  case e_display_mode::RECEIVER_HEATINDEX:
-    sprintf(sprintbuf, u8"HEAT INDEX");
-    break;
-  case e_display_mode::RECEIVER_LASTTIME:
-    sprintf(sprintbuf, u8"LAST TIME");
-    break;
-  }
-
-  {
-    auto wid = m_dsp.getUTF8Width(sprintbuf);
-    m_dsp.drawUTF8((128 - wid) / 2, 29, sprintbuf);    
-    m_dsp.drawLine((128 - wid) / 2, 31, 128 - ((128 - wid) / 2), 31);
-  }
-
-  if (m_once_set) {
-    switch(m_mode) {
-    case e_display_mode::RECEIVER_TEMP:
-      if (!timedout) sprintf(sprintbuf, u8"%.2f ºC", m_temp);
-      else           sprintf(sprintbuf, u8"%.2f ºC*", m_temp);
-      break;
-    case e_display_mode::RECEIVER_HUM:
-      if (!timedout) sprintf(sprintbuf, u8"%.3f%%", m_hum);
-      else           sprintf(sprintbuf, u8"%.3f%%*", m_hum);
-      break;
-    case e_display_mode::RECEIVER_HEATINDEX:
-      {
-        if (!timedout) sprintf(sprintbuf, u8"%.2f ºC", computeHeatIndex(m_temp, m_hum, false));
-        else           sprintf(sprintbuf, u8"%.2f ºC*", computeHeatIndex(m_temp, m_hum, false));
-      }
-      break;
-    case e_display_mode::RECEIVER_LASTTIME:
-      {
-        const auto tt = millis();
-        if (tt - m_last_upd > 60000) {
-          sprintf(sprintbuf, u8"> 60 sec");
-        }
-        else {
-          sprintf(sprintbuf, u8"%.1f sec", ((tt - m_last_upd) * 1.0f / 1000.0f));
-        }
-      }
-      break;
-    }
-  }
-  else {
-    sprintf(sprintbuf, u8"...");
-  }
-
-  {
-    m_dsp.setFont(u8g2_font_osb21_tf);
-    auto wid = m_dsp.getUTF8Width(sprintbuf);  
-    m_dsp.drawUTF8((128 - wid) / 2, 59, sprintbuf);
-  }
+  flip();
 }
 
-void Displayer::_loop()
+void Displayer::destroy()
 {
-  vTaskDelay(pdMS_TO_TICKS(90));
-
-  if (sleepin) {
-    m_dsp.clearDisplay();
-    vTaskDelay(pdMS_TO_TICKS(490));
-    return;
+  if (m_dsp) {
+    delete m_dsp;
+    m_dsp = nullptr;
   }
-  
-  m_dsp.clearBuffer();
-  //m_dsp.firstPage();
-  //do {
-  switch(m_mode) {
-  case e_display_mode::RECEIVER_TEMP:
-  case e_display_mode::RECEIVER_HUM:
-  case e_display_mode::RECEIVER_LASTTIME:
-  case e_display_mode::RECEIVER_HEATINDEX:
-    mode_recv_default();
-    break;
-  case e_display_mode::SENDER_DEFAULT:
-    mode_send_default();
-    break;
-  }
-  //} while(m_dsp.nextPage());
-  m_dsp.sendBuffer();
-}
-
-Displayer::Displayer()
-  : Async(false), m_dsp(U8G2_R0, DISP_CLK_PIN, DISP_DATA_PIN, DISP_RST_PIN)
-{
-  m_dsp.begin();
-  m_dsp.enableUTF8Print();
-  delayed_launch();
-}
-
-void Displayer::set_mode(e_display_mode mo)
-{
-  m_mode = mo;
-}
-
-void Displayer::next_mode()
-{
-  switch(m_mode) {
-  case e_display_mode::RECEIVER_TEMP:
-    m_mode = e_display_mode::RECEIVER_HUM;
-    break;
-  case e_display_mode::RECEIVER_HUM:
-    m_mode = e_display_mode::RECEIVER_HEATINDEX;
-    break;
-  case e_display_mode::RECEIVER_HEATINDEX:
-    m_mode = e_display_mode::RECEIVER_LASTTIME;
-    break;
-  case e_display_mode::RECEIVER_LASTTIME:
-    m_mode = e_display_mode::RECEIVER_TEMP;
-    break;
-  case e_display_mode::SENDER_DEFAULT:
-    m_mode = e_display_mode::SENDER_DEFAULT;
-    break;
-  }
-}
-
-void Displayer::receiver(int rssi, float snr, float temp, float hum)
-{
-  m_rssi = rssi;
-  m_snr = snr;
-  m_temp = temp;
-  m_hum = hum;
-  m_last_upd = millis();
-  m_once_set = true;
-}
-
-void Displayer::sender(unsigned long time_send, float temp, float hum, int gain)
-{
-  m_temp = temp;
-  m_hum = hum;
-  m_gain = gain;
-  m_last_upd = millis();
-  sending_at = millis() + time_send;
-}
-
-void Displayer::sleeping(bool sleeps)
-{
-  sleepin = sleeps;
-}
-
-void Displayer::set_battery(float perccent, bool charg)
-{
-  m_battery_level = perccent;
-  if (m_battery_level < 0.0f) m_battery_level = 0.0f;
-  if (m_battery_level > 100.0f) m_battery_level = 100.0f;
-  m_battery_charging = charg;
 }
