@@ -11,7 +11,7 @@
 
 #define TASK_STACK_DEFAULT 4096
 constexpr size_t limit_tasks_queue = 20;
-constexpr size_t num_threads = 8;
+constexpr size_t num_threads = 4;
 constexpr size_t priority_threads = 1;//tskIDLE_PRIORITY; // 1;
 
 struct event_fire {
