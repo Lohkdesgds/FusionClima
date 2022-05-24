@@ -1,5 +1,9 @@
 #include "cpu_tools.h"
 
+__i_clk_mng __clk_mng;
+__i_cpu_info __ecpu[portNUM_PROCESSORS];
+TaskHandle_t __thrcpu = nullptr;
+
 TaskHandle_t new_thread(void(*f)(void*), const char* nam, UBaseType_t priority, size_t stac, void* arg, int coreid)
 {
   TaskHandle_t _t = nullptr; 
@@ -66,9 +70,10 @@ void __calc_loop(void*)
   vTaskDelete(NULL);
 }
 
-void setup_cpu_tools()
+void setup_cpu_tools(bool autoclock)
 {
   if (__thrcpu) return;
+  __clk_mng._thrautoclock = autoclock;
   
   for(size_t i = 0; i < portNUM_PROCESSORS; ++i) {
     if (esp_register_freertos_idle_hook_for_cpu(__idle_call, i) != ESP_OK) {
@@ -104,7 +109,7 @@ uint16_t get_cpu_count(){
 
 float get_cpu_usage()
 {
-  if (!__thrcpu) setup_cpu_tools();
+  if (!__thrcpu) setup_cpu_tools(true);
   
   float _tot = 0.0f;
   for(size_t i = 0; i < portNUM_PROCESSORS; ++i) {
@@ -118,7 +123,7 @@ float get_cpu_usage()
 
 float get_cpu_usage_id(size_t p)
 {
-  if (!__thrcpu) setup_cpu_tools();
+  if (!__thrcpu) setup_cpu_tools(true);
   
   if (p >= portNUM_PROCESSORS) return 0.0f;
   const float res = __ecpu[p].last_perc;

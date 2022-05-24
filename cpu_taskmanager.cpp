@@ -22,7 +22,7 @@ TaskManager::~TaskManager()
 void TaskManager::post(std::function<void(void)> f)
 {
   if (!f) return;
-  setup_cpu_tools();
+  setup_cpu_tools(true);
   while (m_ev.m_post.size() >= limit_tasks_queue) vTaskDelay(pdMS_TO_TICKS(250));
   
   /*if (min_clock <= 10) min_clock = 10;

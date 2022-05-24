@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include "lora.h"
-/*
+
 struct protocol {
   uint64_t device = 0;
   float temp = 0.0f, temp_d = 0.0f;
@@ -16,4 +16,4 @@ struct protocol_extra {
 };
 
 bool send_pack(protocol&);
-bool try_get_pack(protocol_extra&);*/
+bool try_get_pack(protocol_extra&);

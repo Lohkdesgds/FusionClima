@@ -17,11 +17,12 @@ void Displayer::draw_top()
   m_dsp->setFont(u8g2_font_tiny_simon_tr); 
 
   // CPU USAGE
-  sprintf(dmp, "%04.1f%%", 99.9f * get_cpu_usage());
+  { const float _cpu = 99.9f * get_cpu_usage(); if (_cpu >= 10.0f) {sprintf(dmp, "%04.1f%%", _cpu);} else {sprintf(dmp, "%04.2f%%", _cpu);}}
   m_dsp->drawUTF8(0, 5, dmp); // CPU USAGE
 
   // RAM USAGE
-  sprintf(dmp, "%04.1f%%", 99.9f * get_ram_usage());  
+  { const float _ram = 99.9f * get_ram_usage(); if (_ram >= 10.0f) {sprintf(dmp, "%04.1f%%", _ram);} else {sprintf(dmp, "%04.2f%%", _ram);}}
+  //sprintf(dmp, "%04.1f%%", 99.9f * get_ram_usage());  
   m_dsp->drawUTF8(24, 5, dmp); 
   
   m_dsp->drawUTF8(43, 5, "88"); // DEVICES ECHOING (TRANSMITTERS RECEIVED)

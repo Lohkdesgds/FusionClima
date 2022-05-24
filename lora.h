@@ -1,55 +1,54 @@
 #pragma once
 
 #include "heltec.h"
-#include "Arduino.h"
-
+#include <deque>
 #include <mutex>
-#include <functional>
+#include <memory>
 
-#define POWER 20 // [2..20]
-#define BAND    ((long)915E6)  //you can set band here directly,e.g. 868E6,915E6
-#define SYNC_WORD 0x3F // [0x00 - 0xFF]
-
-namespace LoRaAsync {
-
-  constexpr size_t SIGNATURE_LEN = 4;
-  static char THIS_SIGNATURE[SIGNATURE_LEN] = {'L', 'S', 'W', '1'};
-  
-  struct __pack_dbg_insert {
-     char SIGNATURE_OFFSET[4];
-  };
-  
-  struct pack {
-     std::vector<char> data; // raw data.
-     uint32_t rssi = 0; // typ: [0, 120], common: [25, 100] [dB] (inverse)
-     float snr = 0.0f; // typ: [-20, 10] [dB]
-  };
-  
-  struct __storage {
-    std::mutex packs_mtx;
-    std::function<void(pack&)> func_deal;
+// incl
+namespace LoRaC {
     
-    bool has_initialized = false;
-  };
-  
-  static __storage __strlora;
-  
-  char* __cast_begin_p(__pack_dbg_insert*);
-  char* __cast_end_p(__pack_dbg_insert*);
-  
-  bool __lora_receive_confirm(uint64_t);
-  void __lora_on_receive(int packsiz);
-  
-  uint64_t lora_get_mac();
-  std::string lora_get_mac_str(); // https://github.com/Heltec-Aaron-Lee/WiFi_Kit_series/blob/master/esp32/libraries/ESP32/examples/ChipID/GetChipID/GetChipID.ino
-  
-  void lora_init(char = 'L', char = 'S', char = 'W', char = '1');
-  void lora_stop();
-  
-  void lora_hook_recv(std::function<void(pack&)>);
-  void lora_unhook_recv();
-  
-  bool lora_send(const char*, size_t);//, uint32_t = 0);
-  bool lora_send(std::vector<char>);//, uint32_t = 0);
-  
+    const size_t max_packs = 20;
+    const uint64_t lora_mac_this = ESP.getEfuseMac();
+    
+    struct pack {
+        std::unique_ptr<char[]> ptr;
+        size_t ptr_len;
+        
+        operator bool() const;
+    };
+
+    struct rawpackage {
+        uint16_t key;
+        pack rest;
+    };
+    
+    class packctl {
+        std::deque<pack> packs;
+        std::mutex packs_mtx;
+        uint16_t key = 0;
+        bool ready = false;
+    public:
+        bool begin(uint16_t nkey, long freq = 915E6);
+        void end();
+    
+        bool __push(pack&&);
+        
+        bool has() const;
+        operator bool() const;
+        
+        float currentSnr() const;
+        int32_t currentRssi() const;
+        
+        uint16_t get_key() const;
+        
+        bool has_begun() const;
+        
+        pack pop();
+        bool send(char*, size_t);
+    };
+
+    extern packctl LR;
+    
+    void __lora_receive(const int);
 }

@@ -1,131 +1,125 @@
 #include "lora.h"
 
-namespace LoRaAsync {
-  
-  char* __cast_begin_p(__pack_dbg_insert* p)
-  {
-    return (char*)p;
-  }
-  
-  char* __cast_end_p(__pack_dbg_insert* p)
-  {
-    return ((char*)p) + sizeof(__pack_dbg_insert);
-  }
-  
-  uint64_t lora_get_mac()
-  {
-    if (!__strlora.has_initialized) lora_init();
-    return ESP.getEfuseMac();
-  }
-  
-  std::string lora_get_mac_str()
-  {
-    if (!__strlora.has_initialized) lora_init();
-    uint64_t chipId = lora_get_mac();
-    char tmp[24];
-    sprintf(tmp, "%04X%08X", (uint16_t)(chipId>>32), (uint32_t)chipId);
-    return tmp;
-  }
-
-  void __lora_on_receive(int packsiz)
-  {
-    Serial.printf("Got something of %i\n", packsiz);
-    __pack_dbg_insert _insr;
-    pack pk;
+namespace LoRaC {
     
-    if(packsiz <= sizeof(_insr)){ // pack is empty or not valid by standard
-      Serial.printf("Failed: packsiz too small\n");
-      while(--packsiz >= 0) LoRa.read(); // free up
-      return;
-    }    
-
-    for(size_t p = 0; p < sizeof(_insr) && (--packsiz > 0); ++p) ((char*)&_insr)[p] = (char)LoRa.read();
-    if (packsiz == 0) {
-      Serial.printf("Failed: packsiz got too small (2)\n");
-      return;
-    }
-    while(--packsiz >= 0) pk.data.push_back((char)LoRa.read());
+    packctl LR;
     
-    if (pk.data.empty()) {
-      Serial.printf("Data is empty!\n");
-      return; // empty packet
-    }
-    if (memcmp(_insr.SIGNATURE_OFFSET, THIS_SIGNATURE, SIGNATURE_LEN) != 0) { // not a valid packet.
-      Serial.printf("Signature mismatch: %s != %s\n", _insr.SIGNATURE_OFFSET, THIS_SIGNATURE);
-      while(--packsiz >= 0) LoRa.read(); // free up
-      return;
+    pack::operator bool() const
+    {
+        return ptr_len > 0 && ptr.get() != nullptr;
     }
     
-    pk.rssi = -LoRa.packetRssi();
-    pk.snr = LoRa.packetSnr();
-    
-    std::lock_guard<std::mutex> l(__strlora.packs_mtx);
-    if (__strlora.func_deal) {
-      __strlora.func_deal(pk);
+    bool packctl::begin(uint16_t nkey, long freq)
+    {
+        key = nkey;
+        if (ready) return true;
+        if (!LoRa.begin(915E6, true)) return false;
+        LoRa.setTxPower(20, PA_OUTPUT_PA_BOOST_PIN);
+        //LoRa.setSignalBandwidth(250E3); // lower == better range, cost: bitrate | opts: 7.8E3, 10.4E3, 15.6E3, 20.8E3, 31.25E3, 41.7E3, 62.5E3, 125E3, 250E3, and 500E3
+        //LoRa.setSpreadingFactor(7);
+        //LoRa.setCodingRate4(8); // 5 to 8, 8 has more error check I think
+        //LoRa.setPreambleLength(32);
+        //LoRa.enableInvertIQ();
+        //LoRa.setSyncWord(0x01);
+        LoRa.onReceive(__lora_receive);
+        LoRa.receive();
+        ready = true;
+        return true;
     }
-    else {
-      Serial.printf("No func!\n");
+    
+    void packctl::end()
+    {
+        if (!ready) return;
+        LoRa.end();
+        ready = false;
     }
-  }
-  
-  void lora_init(char a, char b, char c, char d)
-  {
-    if (__strlora.has_initialized) return;
-    THIS_SIGNATURE[0] = a;
-    THIS_SIGNATURE[1] = b;
-    THIS_SIGNATURE[2] = c;
-    THIS_SIGNATURE[3] = d;
-    LoRa.begin(BAND, true);
-    LoRa.setSyncWord(SYNC_WORD);
-    LoRa.onReceive(__lora_on_receive);
-    LoRa.receive();
-    __strlora.has_initialized = true;
-  }
-  
-  void lora_stop()
-  {
-    if (!__strlora.has_initialized) return;
-    LoRa.end();
-    __strlora.has_initialized = false;
-  }
-  
-  void lora_hook_recv(std::function<void(pack&)> f)
-  {
-    if (!__strlora.has_initialized) lora_init();
-    std::lock_guard<std::mutex> l(__strlora.packs_mtx);
-    __strlora.func_deal = f;
-  }
-  
-  void lora_unhook_recv()
-  {
-    std::lock_guard<std::mutex> l(__strlora.packs_mtx);
-    __strlora.func_deal = {};
-  }
-
-  bool lora_send(const char* dat, size_t len)//, uint32_t rebroadcast_radius)
-  {
-    return lora_send(std::vector<char>(dat, (const char*)(dat + len)));//, rebroadcast_radius);
-  }
-  
-  bool lora_send(std::vector<char> dat)//, uint32_t rebroadcast_radius)
-  {
-    if (!__strlora.has_initialized) return false;
-    if (!LoRa.beginPacket()) return false;
-    LoRa.setTxPower(POWER, RF_PACONFIG_PASELECT_PABOOST); // max
-
-    __pack_dbg_insert _insr;
-    for(size_t p = 0; p < SIGNATURE_LEN; ++p) _insr.SIGNATURE_OFFSET[p] = THIS_SIGNATURE[p];
     
-    dat.insert(dat.begin(), __cast_begin_p(&_insr), __cast_end_p(&_insr));
-
-    Serial.print("Sending: \"");
-    for(const auto& ch : dat) Serial.print(ch);
-    Serial.printf("\" (size: %zu)\n", dat.size());
+    bool packctl::__push(pack&& mov)
+    {
+        if (packs.size() >= max_packs) return false;
+        std::lock_guard<std::mutex> l(packs_mtx);
+        packs.emplace_back(std::move(mov));
+        return true;
+    }
     
-    size_t _sent = LoRa.write((uint8_t*)dat.data(), dat.size());
-    const bool gud = LoRa.endPacket() && _sent == dat.size();
-    LoRa.receive();
-    return gud;
-  }
-
+    bool packctl::has() const
+    {
+        return packs.size() > 0;
+    }
+    
+    packctl::operator bool() const
+    {
+        return packs.size() > 0;
+    }
+    
+    float packctl::currentSnr() const
+    {
+        return LoRa.packetSnr();
+    }
+    
+    int32_t packctl::currentRssi() const
+    {
+        return LoRa.packetRssi();
+    }
+    
+    uint16_t packctl::get_key() const
+    {
+        return key;
+    }
+    
+    bool packctl::has_begun() const
+    {
+        return ready;
+    }
+    
+    pack packctl::pop()
+    {
+        if (packs.empty()) return {};
+        pack p;
+        std::lock_guard<std::mutex> l(packs_mtx);
+        p = std::move(packs.front());
+        packs.pop_front();
+        return p;
+    }
+    
+    bool packctl::send(char* buf, size_t len)
+    {
+        if (!buf || len == 0) return false;
+        if (!LoRa.beginPacket()) {
+            LoRa.receive();
+            return false;
+        }
+        LoRa.write((uint8_t*)&key, sizeof(key));
+        LoRa.write((uint8_t*)buf, len);
+        const bool gud = LoRa.endPacket();
+        LoRa.receive();
+        return gud;
+    }
+    
+    void __lora_receive(const int len)
+    {
+        Serial.printf("[LoRa] Received: %i\n", len);
+        
+        rawpackage wrk;
+        if (len < sizeof(wrk.key)) {
+            Serial.printf("[LoRa] Packet was too small: %d\n", len);
+            return;
+        }
+        
+        wrk.rest.ptr_len = len - sizeof(wrk.key);
+        wrk.rest.ptr = std::unique_ptr<char[]>(new char[wrk.rest.ptr_len]);
+        
+        LoRa.readBytes((char*)&wrk.key, sizeof(wrk.key));
+        char* damnit = wrk.rest.ptr.get();
+        LoRa.readBytes(damnit, wrk.rest.ptr_len);
+        
+        if (LR.get_key() != wrk.key) {
+            Serial.printf("[LoRa] Packet didn't match key: %u != %u\n", (unsigned)LR.get_key(), (unsigned)wrk.key);
+            return;
+        }        
+        
+        if (!LR.__push(std::move(wrk.rest))) {
+            Serial.printf("[LoRa] Failed to push received package.\n");
+        }
+    }
 }

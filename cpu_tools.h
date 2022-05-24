@@ -35,11 +35,11 @@ struct __i_clk_mng {
   //std::mutex mtx;
 };
 
-static __i_clk_mng __clk_mng;
+extern __i_clk_mng __clk_mng;
 
 
-static __i_cpu_info __ecpu[portNUM_PROCESSORS];
-static TaskHandle_t __thrcpu = nullptr;
+extern __i_cpu_info __ecpu[portNUM_PROCESSORS];
+extern TaskHandle_t __thrcpu;
 
 constexpr uint32_t cpu_clocks_possible_len = 6;
 constexpr uint32_t cpu_clocks_possible[cpu_clocks_possible_len] = {240, 160, 80, 40, 20, 10};
@@ -56,7 +56,7 @@ static void __tick_call();
 static void __calc_clock(void*);
 static void __calc_loop(void*);
 
-void setup_cpu_tools();
+void setup_cpu_tools(bool autoclock);
 void stop_cpu_tools();
 
 uint32_t get_cpu_clock();
