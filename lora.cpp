@@ -1,8 +1,8 @@
 #include "lora.h"
-
-namespace LoRaC {
     
-    packctl LR;
+LoRaC::packctl LR;
+    
+namespace LoRaC {
     
     pack::operator bool() const
     {

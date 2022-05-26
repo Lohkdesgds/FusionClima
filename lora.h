@@ -47,8 +47,8 @@ namespace LoRaC {
         pack pop();
         bool send(char*, size_t);
     };
-
-    extern packctl LR;
     
     void __lora_receive(const int);
 }
+
+extern LoRaC::packctl LR;

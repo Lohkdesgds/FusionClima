@@ -25,18 +25,13 @@ struct __i_cpu_info {
 };
 
 struct __i_clk_mng {
-  //std::atomic<uint32_t> _clk_idle;
   std::atomic<uint32_t> _clk_count;
   uint32_t _curr_clock_mhz = 240;
   bool _thrautoclock = true;
   TaskHandle_t _thr_auto = nullptr;
-
-  //std::condition_variable cond;
-  //std::mutex mtx;
 };
 
 extern __i_clk_mng __clk_mng;
-
 
 extern __i_cpu_info __ecpu[portNUM_PROCESSORS];
 extern TaskHandle_t __thrcpu;
@@ -45,16 +40,14 @@ constexpr uint32_t cpu_clocks_possible_len = 6;
 constexpr uint32_t cpu_clocks_possible[cpu_clocks_possible_len] = {240, 160, 80, 40, 20, 10};
 constexpr uint32_t cpu_check_clock_every = 250; // ms
 
-//constexpr uint32_t __cpu_check_clk = cpu_check_clock_every * portNUM_PROCESSORS;
-
 constexpr UBaseType_t priority_real_time = std::numeric_limits<UBaseType_t>::max() - 1;
 
 TaskHandle_t new_thread(void(*f)(void*), const char* nam, UBaseType_t priority, size_t stac = 8192, void* arg = nullptr, int coreid = -1);
 
-static bool __idle_call();
-static void __tick_call();
-static void __calc_clock(void*);
-static void __calc_loop(void*);
+bool __idle_call();
+void __tick_call();
+void __calc_clock(void*);
+void __calc_loop(void*);
 
 void setup_cpu_tools(bool autoclock);
 void stop_cpu_tools();
