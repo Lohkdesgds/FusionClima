@@ -87,7 +87,9 @@ namespace TaskTimed {
                 for(auto& i : m_timed)
                 {
                     if (i->next_task_at < noww || i->next_task_at == 0) {
-                        i->next_task_at = noww + i->delta;
+                        if (i->next_task_at + i->delta < noww) i->next_task_at = noww + i->delta + (i->randomness != 0 ? (random(0, i->randomness)) : 0);
+                        else i->next_task_at += (i->delta + (i->randomness != 0 ? (random(0, i->randomness)) : 0));
+                        
                         if (i->returned) {
                             i->returned = false;
                             m_mng.post(i->func);
@@ -133,7 +135,7 @@ namespace TaskTimed {
         }
     }
 
-    void task_timed::add(std::function<void(void)> f, uint32_t ms, size_t id)
+    void task_timed::add(std::function<void(void)> f, uint32_t ms, size_t id, uint32_t randomness)
     {
         if (!f || ms == 0) return;
         begin();
@@ -148,6 +150,7 @@ namespace TaskTimed {
             ptr->returned = true; 
         };
         td->delta = ms;
+        td->randomness = randomness;
         td->custom_id = id;
         
         std::lock_guard<std::recursive_mutex> l(m_timed_mtx);

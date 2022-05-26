@@ -37,14 +37,26 @@ namespace DisplayWork {
         { const int32_t _rssi = LR.currentRssi(); if (_rssi > 0) {sprintf(dmp, "00dB");} else if (_rssi > -199) {sprintf(dmp, "%02idB", -_rssi);} else {sprintf(dmp, "-199dB");} }
         m_dsp->drawUTF8(68, 5, dmp); // LAST BEST SIGNAL (-dB)
         
-        m_dsp->drawUTF8(113, 5, "188%%"); // BATTERY PERC [0..100]  
-        m_dsp->drawLine(109, 2, 105, 2);  // BATTERY BAR
+        //m_dsp->drawUTF8(113, 5, "188%%"); // BATTERY PERC [0..100]  
+        {
+            const float _perc = read_battery_perc_cache(true);
+            if (_perc >= 100.0f) sprintf(dmp, "100%%");
+            else                 sprintf(dmp, " %02.0f%%", _perc);
+            //Serial.printf("PERC DRAWN: %s\n", dmp);
+            m_dsp->drawUTF8(113, 5, dmp);        
+            m_dsp->drawLine(109, 2, 109 - constrain(map((int)_perc, 0, 100, 0, 5), 0, 4), 2);  // BATTERY BAR [109..105]
+        }
+        
         m_dsp->drawBox(89, 3, 2, 1); // LOW  BAR SIGNAL
         m_dsp->drawBox(92, 2, 2, 2); // ...  BAR SIGNAL
         m_dsp->drawBox(95, 1, 2, 3); // ...  BAR SIGNAL
         m_dsp->drawBox(98, 0, 2, 4); // HIGH BAR SIGNAL
         
-        m_dsp->drawLine(0, 7, 128, 7);  
+        m_dsp->drawLine(0, 7, 128, 7);
+        
+        m_dsp->setFont(u8g2_font_t0_11_te);
+        sprintf(dmp, "%.1f", Syncer.get_delta_time() * 0.001f);
+        m_dsp->drawUTF8(0, 60, dmp);
     }
 
     void Displayer::draw_bottom()

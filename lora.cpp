@@ -89,6 +89,7 @@ namespace LoRaC {
             LoRa.receive();
             return false;
         }
+        LoRa.setTxPower(20, PA_OUTPUT_PA_BOOST_PIN);
         LoRa.write((uint8_t*)&key, sizeof(key));
         LoRa.write((uint8_t*)buf, len);
         const bool gud = LoRa.endPacket();

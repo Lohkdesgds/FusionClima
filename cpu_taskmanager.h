@@ -22,7 +22,7 @@
 namespace TaskManager {
     
     constexpr size_t limit_tasks_queue = 20;
-    constexpr size_t num_threads = 4;
+    constexpr size_t num_threads = 2;
     constexpr size_t priority_threads = 1;//tskIDLE_PRIORITY; // 1;
 
     struct event_fire {
@@ -65,7 +65,7 @@ namespace TaskTimed {
         bool returned = true;
         
         // CONFIG
-        uint32_t delta = 0, delta_taken = 0; // ms
+        uint32_t delta = 0, randomness = 0, delta_taken = 0; // ms
         size_t custom_id = 0;
     };
 
@@ -87,7 +87,7 @@ namespace TaskTimed {
         ~task_timed();
         
         void begin();
-        void add(std::function<void(void)> f, uint32_t ms, size_t id);
+        void add(std::function<void(void)> f, uint32_t ms, size_t id, uint32_t randomness = 0);
         
         // if task is meant to run each 3000 ms and it takes 1000 ms, 0.33f
         float get_cpu_time_of(size_t id);

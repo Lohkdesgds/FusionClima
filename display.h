@@ -19,6 +19,7 @@
 #endif
 
 #include "shared.h"
+#include "battery.h"
 #include "display_bitmaps.h"
 #include "cpu_tools.h"
 #include "lora.h"

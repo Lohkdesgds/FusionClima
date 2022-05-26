@@ -2,6 +2,7 @@
 #include <heltec.h>
 #include <thread>
 
+#include "battery.h"
 #include "cpu_taskmanager.h"
 #include "lora.h"
 #include "sensoring_control.h"
@@ -35,6 +36,7 @@ static void do_smth()
 void setup()
 {
     setup_cpu_tools(false);
+    setup_battery();
     pinMode(ESP_MODE_PIN, INPUT_PULLUP);
     pinMode(ESP_LED, OUTPUT);
     
@@ -73,7 +75,7 @@ void setup()
                 }
             }
             Syncer.host_auto_post();
-        }, 5500, taskcounter++);
+        }, 5500, taskcounter++, 5000);
     }
     else {
         Serial.println("Mode selected: CLIENT");
@@ -97,7 +99,8 @@ void setup()
         }, 5000, taskcounter++);
     }
     
-    TimedTasker.add([]{Syncer.any_ping(); Serial.println("PING (so signal update)");}, 30000, taskcounter++);
+    TimedTasker.add([]{read_battery_perc(false);/*Serial.printf("READ BATT %.2f%% (update local)\n", read_battery_perc(false));*/}, 10000, taskcounter++);
+    TimedTasker.add([]{Syncer.any_ping(); Serial.println("PING (so signal update)");}, 30000, taskcounter++, 5000);
     TimedTasker.add([]{display.draw();}, 1000, taskcounter++);
     
     

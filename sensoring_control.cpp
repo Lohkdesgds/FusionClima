@@ -8,7 +8,7 @@ namespace Protocol {
     void SyncCtl::client_auto_request() // request if time is 0 or timenow - that > prot_client_time_to_request
     {        
         std::lock_guard<std::mutex> l(safe_send);
-        delay(5000);
+        //delay(random(2000, 10000));
         
         const uint64_t _t = get_time_ms();
         if (_t - m_last_doe < prot_client_time_to_request && m_last_doe != 0) return;
@@ -38,7 +38,7 @@ namespace Protocol {
     bool SyncCtl::host_manual_post() // if someone ask for data, send
     {
         std::lock_guard<std::mutex> l(safe_send);
-        delay(5000);
+        //delay(random(2000, 10000));
         
         prot_bomb pak;
         pak.type = prot_type::UPDATE;
@@ -52,7 +52,7 @@ namespace Protocol {
     bool SyncCtl::any_ping() const
     {
         std::lock_guard<std::mutex> l(safe_send);
-        delay(5000);
+        //delay(random(2000, 10000));
         
         prot_bomb pak;
         pak.type = prot_type::PING;
