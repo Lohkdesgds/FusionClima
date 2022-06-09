@@ -1,0 +1,121 @@
+//////////////////////// main.cpp
+
+//struct show {
+//	std::vector<ALLEGRO_VERTEX> pts;
+//	double min = double_null;
+//	double max = double_null;
+//
+//	void calcstuff(ALLEGRO_COLOR color, const int limx, const int limy, const double = double_null);
+//};
+
+int main()
+{
+	std::cout << "Loading file..." << std::endl;
+	const auto things = readfile(inuse);
+	if (things.empty()) return 1;
+
+	test_reset(things[0].temp_ar_bulbo_seco, things[0].umidade_relativa_ar);
+
+	for (size_t p = 1; p < things.size(); ++p)
+	{
+		if ((things[p].temp_ar_bulbo_seco == double_null || isinf(things[p].temp_ar_bulbo_seco)) || (things[p].umidade_relativa_ar == double_null || (things[p].umidade_relativa_ar > 100.0))) {
+			continue;
+		}
+
+		if (test_rainy(things[p].temp_ar_bulbo_seco, things[p].umidade_relativa_ar)) {
+			std::cout << "[Auto] Detected rain at [" << p << "] {" << dtemp_h << "->" << temp_h << ";" << dumid_h << "->" << umid_h << "}" << std::endl;
+			std::cout << "[NOW:] " << things[p].temp_ar_bulbo_seco << ";" << things[p].umidade_relativa_ar << std::endl << std::endl;
+		}
+		else if (things[p].precipitacao_total_mm > 0) {
+			if (p > 8 && (p + 2) < things.size()) {
+				std::string stemp, sumid;
+				for (size_t k = p - 8; k < (p + 2); ++k) {
+					if (k == p) {
+						stemp += ">";
+						sumid += ">";
+					}
+					stemp += fill_spaces(remove_zeros(std::to_string(things[k].temp_ar_bulbo_seco)), 4).substr(0, 4) + ", ";
+					sumid += fill_spaces(remove_zeros(std::to_string(things[k].umidade_relativa_ar)), 4).substr(0, 4) + ", ";
+				}
+				for (size_t a = 0; a < 2 && stemp.size(); ++a) stemp.pop_back();
+				for (size_t a = 0; a < 2 && sumid.size(); ++a) sumid.pop_back();
+
+				std::cout << "Got rain case [" << p << "]{" << dtemp_h << "->" << temp_h << ";" << dumid_h << "->" << umid_h << "}:\nTEMPS: " << stemp << "\nUMIDS: " << sumid << std::endl << std::endl;
+			}
+		}
+	}
+	
+
+	//std::cout << "Preparing display stuff..." << std::endl;
+	//
+	//al_init();
+	//al_init_image_addon();
+	//al_init_primitives_addon();
+	//
+	//show temperaturas, umidades;
+	//for (const auto& i : things) { ALLEGRO_VERTEX vtx{}; vtx.y = i.temp_ar_bulbo_seco; temperaturas.pts.push_back(vtx); }
+	//for (const auto& i : things) { ALLEGRO_VERTEX vtx{}; vtx.y = i.umidade_relativa_ar; umidades.pts.push_back(vtx); }
+	//
+	//ALLEGRO_DISPLAY* disp = al_create_display(2500, 1000);
+	//ALLEGRO_EVENT_QUEUE* ev_qu = al_create_event_queue();
+	//if (!disp || !ev_qu) return 1;
+	//al_register_event_source(ev_qu, al_get_display_event_source(disp));
+	//
+	//temperaturas.calcstuff(al_map_rgba(127, 127, 0, 127), al_get_display_width(disp) * 4, al_get_display_height(disp) * 4);
+	//umidades.calcstuff(al_map_rgba(0, 75, 127, 127), al_get_display_width(disp) * 4, al_get_display_height(disp) * 4, 100.0);
+	//
+	//
+	//{
+	//	ALLEGRO_TRANSFORM t{};
+	//	al_build_transform(&t, 0, 0, 0.25f, 0.25f, 0.0f);
+	//	al_use_transform(&t);
+	//}
+	//
+	//while (1) {
+	//	ALLEGRO_EVENT ev;
+	//	if (al_get_next_event(ev_qu, &ev)) {
+	//		if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+	//			break;
+	//	}
+	//	al_clear_to_color(al_map_rgb(8, 8, 8));
+	//	al_draw_prim(temperaturas.pts.data(), nullptr, nullptr, 0, static_cast<int>(temperaturas.pts.size()), ALLEGRO_PRIM_LINE_LIST);
+	//	al_draw_prim(umidades.pts.data(), nullptr, nullptr, 0, static_cast<int>(umidades.pts.size()), ALLEGRO_PRIM_LINE_LIST);
+	//	al_flip_display();
+	//}
+	//
+	//
+	//
+	//al_destroy_event_queue(ev_qu);
+	//al_destroy_display(disp);
+	//
+	//return 0;
+}
+
+void show::calcstuff(ALLEGRO_COLOR color, const int limx, const int limy, const double limmax)
+{
+	if (pts.empty()) return;
+
+	if (pts[0].y != double_null && !isinf(pts[0].y)) min = max = pts[0].y;
+	else pts[0].y = min = max = 0.0;
+
+	for (size_t p = 0; p < pts.size(); ++p)
+	{
+		if (p > 0 && (pts[p].y == double_null || isinf(pts[p].y) || (pts[p].y > limmax)))
+			pts[p].y = pts[p - 1].y;
+
+		if (pts[p].y > max)
+			max = pts[p].y;
+		if (pts[p].y < min)
+			min = pts[p].y;
+	}
+
+
+	for (size_t p = 0; p < pts.size(); ++p)
+	{
+		pts[p].x = 1.0f * static_cast<float>(limx) * p / pts.size();
+		pts[p].y = 1.0f * static_cast<float>(limy) * (pts[p].y - min) * 1.0f / (max - min);
+
+		pts[p].color = color;
+		
+	}
+}
