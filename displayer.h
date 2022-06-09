@@ -1,0 +1,87 @@
+#pragma once
+
+#include <U8g2lib.h>
+#include <Arduino.h>
+#include <string>
+#include <mutex>
+#include <chrono>
+
+#include "cpuctl.h"
+#include "easybattery.h"
+#include "lora.h"
+#include "shared_data.h"
+
+constexpr int32_t DISP_CLK_PIN      = 15;
+constexpr int32_t DISP_DATA_PIN     = 4;
+constexpr int32_t DISP_RST_PIN      = 16;
+
+
+enum class e_display_mode {RECEIVER_TEMP,RECEIVER_HUM,RECEIVER_HEATINDEX,RECEIVER_LASTTIME,SENDER_DEFAULT};
+
+class Displayer {
+    U8G2_SSD1306_128X64_NONAME_F_SW_I2C* m_dsp = nullptr;
+    
+    display_data m_data;
+    
+    // if not debug_literal:
+    void draw_top();
+    void draw_bottom();
+        
+    void flip();
+public:
+    ~Displayer();
+    
+    void draw();
+    void destroy();
+};
+
+extern Displayer display;
+
+
+
+
+
+
+static unsigned char u8g_topbar2[] = {
+    0b00000000, 0b00000000, 0b00101000, 0b00000000, 0b00000000, 0b00000000, /*0b00101000*/ 0b00000000, 0b00000000, 0b00000010, 0b00000000, 0b00000000, 0b00000000, 0b10000000, 0b11111111, 0b00000000, 0b00000000,
+    0b00000000, 0b00000000, 0b01111100, 0b00000000, 0b00000000, 0b00000000, /*0b00111000*/ 0b00000000, 0b00000000, 0b00000010, 0b00000000, 0b00000000, 0b00000000, 0b11000000, 0b10000000, 0b00000000, 0b00000000, 
+    0b00000000, 0b00000000, 0b00111000, 0b00000000, 0b00000000, 0b00000000, /*0b00010000*/ 0b00000000, 0b00000000, 0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b11000000, 0b10000000, 0b00000000, 0b00000000, 
+    0b00000000, 0b00000000, 0b01111100, 0b00000000, 0b00000000, 0b00000000, /*0b00010000*/ 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b11000000, 0b10000000, 0b00000000, 0b00000000, 
+    0b00000000, 0b00000000, 0b00101000, 0b00000000, 0b00000000, 0b00000000, /*0b00111000*/ 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b10110110, 0b10001101, 0b11111111, 0b00000000, 0b00000000,
+    0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, /*0b00000000*/ 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000
+};
+
+// 8x8
+static unsigned char u8g_ok[] = {
+    0b11000000,
+    0b11000000,
+    0b11100000,
+    0b01100000,
+    0b01110011,
+    0b00110111,
+    0b00011110,
+    0b00001100
+};
+
+// 8x8
+static unsigned char u8g_fail[] = {
+    0b11000011,
+    0b11100111,
+    0b01111110,
+    0b00111100,
+    0b00111100,
+    0b01111110,
+    0b11100111,
+    0b11000011
+};
+
+static unsigned char u8g_charge[] = {
+    0b00011111,
+    0b00111110,
+    0b01111100,
+    0b11111111,
+    0b00011110,
+    0b00111100,
+    0b01111000,
+    0b11100000,
+};
