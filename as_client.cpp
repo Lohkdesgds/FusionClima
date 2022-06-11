@@ -16,12 +16,23 @@ void as_client()
     set_led(true);
     sleep_for(10);
     set_led(false);
+    
+    //while(1) {
+    //    mprint("%u\n", touchRead(0));
+    //    sleep_for(500);
+    //}
 
     create_task([](void*){while(1) { AutoTiming at(1000); display.draw(); }}, "DrawingTHR", 0, 16384, nullptr, 1);
     create_task([](void*){while(1) { AutoTiming at(both_ping_tempo); c_quickping = true; }}, "c_quickping");
-    button_begin(0);
+    //create_task([](void*){while(1) { AutoTiming at(clie_req_forecast); c_should_request = true; }}, "c_reqauto");
+
+    //sleep_for(100);
+    //button_begin(0);
+    //sleep_for(100);
 
     while(1) {
+        sleep_for(1000);
+
         if (c_should_request) {
             const auto dat = prot_make_request();
             c_quickping = c_should_request = !LR.send((char*)&dat, sizeof(dat));

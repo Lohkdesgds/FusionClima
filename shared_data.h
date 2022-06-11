@@ -6,6 +6,7 @@
 constexpr size_t alg_history_size = 48;
 constexpr uint64_t host_hora = /*10000;//*/1000 * 60 * 60; // 1000 ms -> 1 s, 60 s -> 1 min, 60 min -> 1 hora
 constexpr uint64_t both_ping_tempo = 1000 * 60 * 2;
+constexpr uint64_t host_rebroadcast_auto = 1000 * 60; // 1 min = request
 
 // - - - - - - STRUCTS
 
@@ -39,7 +40,7 @@ struct alg_data {
 };
 
 struct display_data {
-    uint64_t last_lora_actitivy = 0;
+    uint64_t last_lora_actitivy = 0, last_forecast_update = 0;
     float rain_prob[alg_history_size]{}; // [0] == latest
     alg_data last_data[alg_history_size]{}; // [0] == latest. Client: saves only last
 };

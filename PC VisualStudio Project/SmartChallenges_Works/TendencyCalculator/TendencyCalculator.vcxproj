@@ -192,10 +192,12 @@
     <ClCompile Include="..\shared\datahandler.cpp" />
     <ClCompile Include="algorithm_test.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="paralelism.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\shared\datahandler.h" />
     <ClInclude Include="algorithm_test.h" />
+    <ClInclude Include="paralelism.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

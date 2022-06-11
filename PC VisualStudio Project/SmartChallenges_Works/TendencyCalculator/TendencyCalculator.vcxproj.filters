@@ -6,6 +6,7 @@
       <Filter>shared</Filter>
     </ClCompile>
     <ClCompile Include="algorithm_test.cpp" />
+    <ClCompile Include="paralelism.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="shared">
@@ -17,6 +18,7 @@
       <Filter>shared</Filter>
     </ClInclude>
     <ClInclude Include="algorithm_test.h" />
+    <ClInclude Include="paralelism.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

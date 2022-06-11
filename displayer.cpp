@@ -32,7 +32,7 @@ void Displayer::draw_top()
     //m_dsp->drawUTF8(113, 5, "188%%"); // BATTERY PERC [0..100]  
     {
         const float _perc = get_battery_perc(true);
-        if (_perc >= 1.0f) sprintf(dmp, "100%%");
+        if (_perc > 0.99f)   sprintf(dmp, "100%%");
         else                 sprintf(dmp, " %02.0f%%", 100.0f * _perc);
         //Serial.printf("PERC DRAWN: %s\n", dmp);
         m_dsp->drawUTF8(113, 5, dmp);

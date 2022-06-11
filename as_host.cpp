@@ -13,6 +13,12 @@ bool h_quickping = false; // should ping
 void as_host()
 {
     mprint("======== > Starting as HOST < ========\n");
+
+    //for(auto& i : g_data.rain_prob) {
+    //    i = (100 + (get_time_ms() % 800)) * 0.001f;
+    //    delay(random(10, 100));
+    //}
+
     set_led(true);
     dht.begin();
     sleep_for(250);
@@ -20,8 +26,16 @@ void as_host()
 
 
     create_task([](void*){while(1) { AutoTiming at(1000); display.draw(); }}, "DrawingTHR", 0, 16384, nullptr, 1);
-    create_task([](void*){while(1) { AutoTiming at(host_hora); { /*std::lock_guard<std::mutex> l(__batt.vext_mtx);*/ sleep_for(300); calc_chuva_hora(dht.readTemperature(), dht.readHumidity() * 0.01f); h_quickanswer = true; } }}, "TempUmidSS", 500, 16384, nullptr, 1);
     create_task([](void*){while(1) { AutoTiming at(both_ping_tempo); h_quickping = true; }}, "QuickPing");
+    create_task([](void*){while(1) { AutoTiming at(host_rebroadcast_auto); h_quickanswer = true; }}, "QuickAwAUTO");
+    create_task([](void*){while(1) { 
+        AutoTiming at(2500); 
+        {  
+            //sleep_for(300);
+            calc_chuva_hora(dht.readTemperature(), dht.readHumidity() * 0.01f);
+            //h_quickanswer = true;
+        }
+    }}, "TempUmidSS", 500, 16384, nullptr, 1);
 
     while(1) {        
         sleep_for(4000);

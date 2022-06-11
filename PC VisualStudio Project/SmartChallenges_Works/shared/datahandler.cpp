@@ -39,6 +39,7 @@ bool line::interp(const std::string& buf)
 {
 	std::stringstream ss(buf + ';');
 	std::string buf2;
+	bool selected_failed = false;
 
 	for (size_t each = 0; each < amount_of_opt; ++each)
 	{
@@ -46,11 +47,6 @@ bool line::interp(const std::string& buf)
 			std::cout << "Error: invalid amount of columns!" << std::endl;
 			return false;
 		}
-
-		//if (buf2 == "null") {
-			//std::cout << "Warn @ opt #" << each << " was null." << std::endl;
-			//++err_tabl[each];
-		//}
 
 		switch (each) {
 		case 0:
@@ -65,6 +61,7 @@ bool line::interp(const std::string& buf)
 			//double precipitacao_total_mm;
 			sscanf_s(buf2.c_str(), "%lf", &precipitacao_total_mm);
 			__precipitacao_total_mm_cpy = precipitacao_total_mm;
+			selected_failed |= (precipitacao_total_mm > 500.0 || precipitacao_total_mm < 0.0);
 			break;
 		case 3:
 			//double pressao_atm_estacao_mB;
@@ -93,6 +90,7 @@ bool line::interp(const std::string& buf)
 		case 9:
 			//double temp_ar_bulbo_seco;
 			sscanf_s(buf2.c_str(), "%lf", &temp_ar_bulbo_seco);
+			selected_failed |= (temp_ar_bulbo_seco < -100.0 || temp_ar_bulbo_seco > 100.0);
 			break;
 		case 10:
 			//double temp_ponto_orvalho;
@@ -129,6 +127,7 @@ bool line::interp(const std::string& buf)
 		case 18:
 			//int umidade_relativa_ar; // %
 			sscanf_s(buf2.c_str(), "%i", &umidade_relativa_ar);
+			selected_failed |= (umidade_relativa_ar < 0.0 || umidade_relativa_ar > 110.0);
 			break;
 		case 19:
 			//int vento_ang_dg;
@@ -147,7 +146,7 @@ bool line::interp(const std::string& buf)
 			return false;
 		}
 	}
-	return true;
+	return !selected_failed;
 }
 
 std::string line::export_str() const
@@ -204,6 +203,7 @@ std::vector<line> readfile(const std::string& path)
 	std::string buf;
 	bool possible_end = false;
 	size_t itc = 0;
+	size_t fail_count = 0;
 
 	while (fp && !fp.eof())
 	{
@@ -222,11 +222,15 @@ std::vector<line> readfile(const std::string& path)
 			lst.emplace_back(std::move(lin));
 		}
 		else {
-			std::cout << "Warn: Failed block #" << itc << ": " << buf << std::endl;
+			++fail_count;
+			if (buf.find("null") == std::string::npos) std::cout << "Warn: Failed N" << fail_count << " (invalid) block #" << itc << ": " << buf << std::endl;
 		}
 
 		++itc;
 	}
+
+	if (fail_count) std::cout << "Warn: Got null count: " << fail_count << std::endl;
+	else std::cout << "Info: Got no null" << std::endl;
 
 	return lst;
 }
@@ -263,6 +267,11 @@ bool writefile(const std::string& path, const std::vector<pairing8>& vec)
 bool validity_check_get(const std::vector<line>& thingys, const size_t pp, pairing8& a)
 {
 	if (pp < pred_size) return false;
+	for (size_t k = 0; k < pred_size; ++k) {
+		a.mem[k].temp = thingys[pp - ((pred_size - k) - 1)].temp_ar_bulbo_seco;
+		a.mem[k].umid = thingys[pp - ((pred_size - k) - 1)].umidade_relativa_ar;
+		a.mem[k].prec_chuva = thingys[pp - ((pred_size - k) - 1)].__precipitacao_total_mm_cpy;
+	}
 	for (size_t k = 0; k < pred_size; ++k)
 	{
 		const auto u = pp - ((pred_size - k) - 1);
@@ -271,11 +280,6 @@ bool validity_check_get(const std::vector<line>& thingys, const size_t pp, pairi
 			(thingys[u].umidade_relativa_ar < 0.0 || thingys[u].umidade_relativa_ar > 100.0) ||
 			(thingys[u].temp_ar_bulbo_seco < -100.0 || thingys[u].temp_ar_bulbo_seco > 200.0)) return false;
 	}
-	for (size_t k = 0; k < pred_size; ++k) {
-		a.mem[k].temp = thingys[pp - ((pred_size - k) - 1)].temp_ar_bulbo_seco;
-		a.mem[k].umid = thingys[pp - ((pred_size - k) - 1)].umidade_relativa_ar;
-		a.mem[k].prec_chuva = thingys[pp - ((pred_size - k) - 1)].__precipitacao_total_mm_cpy;
-	}
 	return true;
 }
 
@@ -283,30 +287,8 @@ std::vector<pairing8> get_preds_steps(const std::vector<line>& thingys, const do
 {
 	std::vector<pairing8> ts;
 
-	//const auto assert_null = [&](const size_t pp) {
-	//	if (pp < pred_size) return false;
-	//	for (size_t k = 0; k < pred_size; ++k)
-	//	{
-	//		const auto u = pp - ((pred_size - k) - 1);
-	//		if (
-	//			(thingys[u].precipitacao_total_mm > 300.0 || thingys[u].precipitacao_total_mm < 0.0) ||
-	//			(thingys[u].umidade_relativa_ar < 0.0 || thingys[u].umidade_relativa_ar > 100.0) ||
-	//			(thingys[u].temp_ar_bulbo_seco < -50.0 || thingys[u].temp_ar_bulbo_seco > 70.0)) return false;
-	//	}
-	//	return true;
-	//};
-
 	for (size_t p = 7; p < thingys.size(); ++p) {
 		if (thingys[p].precipitacao_total_mm >= minchuva) {
-			//if (assert_null(p)) {
-			//	pairing8 a{};
-			//	for (size_t k = 0; k < pred_size; ++k) {
-			//		a.mem[k].temp = thingys[p - ((pred_size - k) - 1)].temp_ar_bulbo_seco;
-			//		a.mem[k].umid = thingys[p - ((pred_size - k) - 1)].umidade_relativa_ar;
-			//		a.mem[k].prec_chuva = thingys[p - ((pred_size - k) - 1)].__precipitacao_total_mm_cpy;
-			//	}
-			//	ts.push_back(a);
-			//}
 			pairing8 a{};
 			if (validity_check_get(thingys, p, a))
 			{

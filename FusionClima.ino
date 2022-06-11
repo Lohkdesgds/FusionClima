@@ -59,11 +59,12 @@ void setup()
 
     if (get_is_host()) {
         mprint("Waking up as host...\n");
-        create_task([](void*){as_host();}, "main", 0, 16384, nullptr, 1);
+        create_task([](void*){as_host();}, "main", 10, 16384, nullptr, 0);
     }
     else {
         mprint("Waking up as client...\n");
-        create_task([](void*){as_client();}, "main", 0, 16384, nullptr, 1);
+        button_begin(0);
+        create_task([](void*){as_client();}, "main", 10, 16384, nullptr, 0);
     }
 
     //LR.begin(system_key);
