@@ -36,21 +36,22 @@ float chuva_chances()
     const float& umidade = g_data.last_data[0].umid;
 
     const auto limfact = [](const float f){ return f > 1.0f ? 1.0f : (f < 0.0f ? 0.0f : f); };
+    const auto safepowf = [](const float f, const float p) {return f <= 0.0f ? 0.0f : powf(f, p); };
 
     return 
         limfact(
-            powf(
-                0.18f * limfact(umidade > 0.92f ? powf((umidade - 0.92f) / 0.08f, 1.7f) : 0.0f) +
+            safepowf(
+                0.18f * limfact(umidade > 0.92f ? safepowf((umidade - 0.92f) / 0.08f, 1.7f) : 0.0f) +
                 0.35f * limfact(
                     limfact(ult_temperatura > temperatura ? ((ult_temperatura - temperatura) * 1.0f / 1.5f) : 0.0f) * 0.7f +
                     limfact(umidade > 0.8f ? ((umidade - 0.8f) / 0.2f) : 0.0f) * 0.4f) +
-                0.55f * powf(limfact(
-                    0.36f * (g_data.last_data[0].umid >= g_data.last_data[1].umid) + 0.17f * (g_data.last_data[1].umid >= g_data.last_data[2].umid) + 0.08f * (g_data.last_data[2].umid >= g_data.last_data[3].umid) +
+                0.55f * safepowf(limfact(
+                    0.32f * (g_data.last_data[0].umid >= g_data.last_data[1].umid) + 0.20f * (g_data.last_data[1].umid >= g_data.last_data[2].umid) + 0.09f * (g_data.last_data[2].umid >= g_data.last_data[3].umid) +
                     0.25f * (g_data.last_data[0].temp <= g_data.last_data[1].temp) + 0.10f * (g_data.last_data[1].temp <= g_data.last_data[2].temp) + 0.05f * (g_data.last_data[2].temp <= g_data.last_data[3].temp)
                 ), 0.4f)
-                - 0.15f * powf(limfact(
-                    0.60f * (g_data.last_data[0].umid <= g_data.last_data[1].umid) + 0.10f * (g_data.last_data[1].umid <= g_data.last_data[2].umid) +
-                    0.20f * (g_data.last_data[0].temp >= g_data.last_data[1].temp) + 0.10f * (g_data.last_data[1].temp >= g_data.last_data[2].temp)
+                - 0.15f * safepowf(limfact(
+                    0.50f * (g_data.last_data[0].umid <= g_data.last_data[1].umid) + 0.15f * (g_data.last_data[1].umid <= g_data.last_data[2].umid) +
+                    0.25f * (g_data.last_data[0].temp >= g_data.last_data[1].temp) + 0.10f * (g_data.last_data[1].temp >= g_data.last_data[2].temp)
                 ), 0.8f)
             , 1.3f)
         );

@@ -58,7 +58,11 @@ void Displayer::draw_bottom()
     m_dsp->setFont(u8g2_font_crox1h_tf); // u8g2_font_Born2bSportyV2_tf, u8g2_font_9x6LED_tf
     
     {
-        sprintf(dmp, u8"%.1fºC %.0f%% Chuva: %.0f%%", g_data.last_data[0].temp, g_data.last_data[0].umid * 100.0f, 100.0f * g_data.rain_prob[0]);
+        float time_remaining_perc = (get_time_ms() - g_data.last_forecast_update) * 1.0f / host_hora;
+        if (time_remaining_perc > 1.0f) time_remaining_perc = 1.0f;
+        if (time_remaining_perc < 0.0f) time_remaining_perc = 0.0f; // somehow, idk
+
+        sprintf(dmp, u8"%.1fºC %.0f%% Chuva: %.0f%%", g_data.last_data[0].temp, g_data.last_data[0].umid * 100.0f, 100.0f * (g_data.rain_prob[0] * (0.5f + 0.5f * time_remaining_perc) + g_data.rain_prob[1] * (0.5f + 0.5f * (1.0f - time_remaining_perc))));
         const auto len = m_dsp->getUTF8Width(dmp);
         m_dsp->drawUTF8(64 - 0.5f * len, 20, dmp);
         m_dsp->drawLine(64 - 0.52f * len, 22, 64 + 0.52f * len, 22);
