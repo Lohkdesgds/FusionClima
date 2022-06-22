@@ -54,7 +54,7 @@ float chuva_chances()
                     0.25f * (g_data.last_data[0].temp >= g_data.last_data[1].temp) + 0.10f * (g_data.last_data[1].temp >= g_data.last_data[2].temp)
                 ), 0.8f)
             , 1.3f)
-        );
+        ) * limfact((g_data.last_data[0].umid - 0.50f) * 1.0f / 0.25f);
 
 
     //chuva_chances = random(0, 1000) * 1.0f / 1000.0f;
