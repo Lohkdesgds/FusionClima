@@ -12,12 +12,6 @@ qrcodegen::QrCode* qr = nullptr;
 DHT* hdt = nullptr;
 int64_t last_click = 0;
 
-constexpr int64_t timeout_screen_on = 20ULL * 1000000ULL; // us
-#define SMOLITALIC u8g2_font_prospero_bold_nbp_tf //u8g2_font_7x13B_tf
-#define MIDDEFAULT u8g2_font_fub11_tf  //u8g2_font_crox3hb_tf 
-constexpr gpio_num_t button_pin = GPIO_NUM_0;
-constexpr gpio_num_t led_pin = GPIO_NUM_25;
-
 void handle_click(bool);
 void async_update(void*);
 void advance_menu();
@@ -37,7 +31,7 @@ void as_host()
     hdt->update();
     
     ESP_LOGI(TAG, "Waking up WiFi");
-    custom_wifi_setup(random_wifi_name(), random_wifi_password());    
+    custom_wifi_setup("potatoed", "arrozfeij"); //random_wifi_name(), random_wifi_password());    
 
     ESP_LOGI(TAG, "Generating QR");
     qr = new qrcodegen::QrCode(custom_wifi_gen_QR());
@@ -57,7 +51,7 @@ void as_host()
     while(1) {
         delay(2000);
         hdt->update();
-        ESP_LOGI(TAG, "Temp: %.1f; Hum: %.1f", hdt->getTemperature(), hdt->getHumidity());
+        //ESP_LOGI(TAG, "Temp: %.1f; Hum: %.1f", hdt->getTemperature(), hdt->getHumidity());
     }
 }
 
@@ -72,15 +66,21 @@ void async_update(void* unnused) {
     const bool do_double = qr->getSize() <= 32;
     const uint32_t offf = ((64 - static_cast<uint32_t>((do_double ? 2 : 1) * qr->getSize())) / 2);
     const uint32_t offtxt = offf + (qr->getSize() * (do_double ? 2 : 1));
-    host_menus old_menu = _menu;
+    //host_menus old_menu = _menu;
+    int64_t last_movement = 0, last_text_upd = 0;
+    u8g2_uint_t none_p[2] = {0,0};
+    u8g2_uint_t off_p[2] = {0,0};
+    u8g2_uint_t l_max_x = 0;
+    std::string line1, line2;
+
     last_click = esp_timer_get_time();
 
     while(1) {
-        if (esp_timer_get_time() - last_click > 20000000){
+        if (esp_timer_get_time() - last_click > timeout_screen_on){
             _menu = host_menus::NONE;
             last_click = esp_timer_get_time();
         }
-        old_menu = _menu;
+        //old_menu = _menu;
 
         switch(_menu) {
         case host_menus::QRCODE:
@@ -137,9 +137,49 @@ void async_update(void* unnused) {
             u8g2.DrawStr(0, 16, "LORA");
             break;
         case host_menus::NONE:
-            custom_digital_write(led_pin, true);
-            delay(10);
-            custom_digital_write(led_pin, false);
+            {
+                u8g2.SetFont(MEGASMOL);
+                if (int64_t _t = esp_timer_get_time(); _t - last_text_upd > 1000000ULL || last_text_upd == 0) {
+                    last_text_upd = _t;
+
+                    custom_digital_write(led_pin, true);
+                    delay(10);
+                    custom_digital_write(led_pin, false);
+
+                    line1 = "WiFi: " + std::to_string(custom_wifi_get_count());
+                    line2 = "Uptime: ";// + std::to_string(_t / 1000000ULL) + " s";
+
+                    _t /= 1000000ULL;
+                    const int64_t sec = _t % 60;
+                    _t -= sec;
+                    const int64_t min_raw = _t % 3600; // /60 l8
+                    _t -= min_raw;
+                    const int64_t hour_raw = _t % (3600 * 24); // /3600 l8
+                    _t -= hour_raw;
+                    const int64_t days = _t / (3600 * 24);
+                    
+                    if (days > 0) line2 += std::to_string(days) + "d";
+                    if (hour_raw > 0) line2 += std::to_string(hour_raw / 3600) + "h";
+                    if (min_raw > 0) line2 += std::to_string(min_raw / 60) + "m";
+                    line2 += std::to_string(sec) + (min_raw > 0 ? "s" : " sec");
+
+                    const auto wl1 = u8g2.GetStrWidth(line1.c_str());
+                    const auto wl2 = u8g2.GetStrWidth(line2.c_str());
+                    off_p[0] = wl1 > wl2 ? 0 : ((wl2 - wl1) / 2);
+                    off_p[1] = wl2 > wl1 ? 0 : ((wl1 - wl2) / 2);
+                    l_max_x = 128 - std::max(wl1, wl2);
+                }
+                if (int64_t _t = esp_timer_get_time(); _t - last_movement > move_screen_sleep || last_movement == 0) {
+                    last_movement = _t;
+
+                    const u8g2_uint_t max_y = 64 - (2 * font_height_megasmol + 1);
+
+                    none_p[0] = esp_random() % l_max_x;
+                    none_p[1] = (esp_random() % max_y) + font_height_megasmol;
+                }
+                u8g2.DrawStr(none_p[0] + off_p[0], none_p[1], line1.c_str());
+                u8g2.DrawStr(none_p[0] + off_p[1], none_p[1] + font_height_megasmol + 1, line2.c_str());
+            }
             break;
         default:
             delay(100);
@@ -150,7 +190,7 @@ void async_update(void* unnused) {
         }
         
         u8g2.SendBuffer();
-        for(size_t c = 0; c < 50 && old_menu == host_menus::NONE && _menu == host_menus::NONE; ++c) delay(50);
+        //for(size_t c = 0; c < 18 && old_menu == host_menus::NONE && _menu == host_menus::NONE; ++c) delay(45);
         delay(25);
         u8g2.ClearBuffer();
     }

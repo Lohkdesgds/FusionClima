@@ -1,14 +1,50 @@
 #include "wifictl.h"
 
-const char *TAG = "wifi softAP";
-wifi_info _wifi;
-const std::string index_html = "<!DOCTYPE html><html><head><title>ESP32 not configured</title></head><body><p>Please do custom_wifi_homepage().</p></body></html>";
+esp_err_t root_get_handler(httpd_req_t*);
 
-void custom_wifi_setup(const std::string& sss, const std::string& pw, const uint8_t maxdevices, uint8_t chh)
+const char *TAG = "WIFI";
+wifi_info _wifi;
+extern const char root_start[] asm("_binary_root_html_start");
+extern const char root_end[] asm("_binary_root_html_end");
+const uint32_t root_len = root_end - root_start;
+std::vector<std::pair<wifi_pair, wifi_handler>> hooks_wifi;
+//const httpd_uri_t _webroot = { .uri = "/", .method = HTTP_GET, .handler = root_get_handler, .user_ctx = nullptr };
+
+
+bool wifi_pair::operator==(const wifi_pair& oth) const
+{
+    return oth.path == path && oth.method == method;
+}
+
+bool wifi_pair::operator!=(const wifi_pair& oth) const
+{
+    return oth.path != path || oth.method != method;
+}
+
+// HTTP GET Handler
+esp_err_t root_get_handler(httpd_req_t *req)
+{
+    ESP_LOGI(TAG, "Serve root");
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, root_start, root_len);
+    return ESP_OK;
+}
+// HTTP Error (404) Handler - Redirects all requests to the root page
+esp_err_t http_404_error_handler(httpd_req_t *req, httpd_err_code_t err)
+{
+    // Set status
+    httpd_resp_set_status(req, "302 Temporary Redirect");
+    // Redirect to the "/" root directory
+    httpd_resp_set_hdr(req, "Location", "/");
+    // iOS requires content in the response to detect a captive portal, simply redirecting is not sufficient.
+    httpd_resp_send(req, "Redirect to the captive portal", HTTPD_RESP_USE_STRLEN);
+    ESP_LOGI(TAG, "Redirecting to root");
+    return ESP_OK;
+}
+
+void custom_wifi_setup(const std::string& sss, const std::string& pw, const bool autohttpfp, const uint8_t maxdevices, uint8_t chh)
 {
     if (_wifi.event_active) custom_wifi_stop();
-
-    if (!_wifi.html_followup) _wifi.html_followup = &index_html;
 
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -63,8 +99,50 @@ void custom_wifi_setup(const std::string& sss, const std::string& pw, const uint
     ESP_LOGI(TAG, "wifi_init_softap finished. SSID:%s password:%s channel:%d",
              wifi_config.ap.ssid, wifi_config.ap.password, wifi_config.ap.channel);
 
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.max_open_sockets = 7;
+    config.lru_purge_enable = true;
+
+    // Start the httpd server
+    ESP_LOGI(TAG, "Starting webserver on port: '%d'", config.server_port);
+    if (httpd_start(&_wifi.webserv, &config) == ESP_OK) {
+        // Set URI handlers
+        ESP_LOGI(TAG, "Registering URI handlers");
+        //httpd_register_uri_handler(_wifi.webserv, &_webroot);
+        if (autohttpfp) custom_wifi_add_handle("/", HTTP_GET, root_get_handler);
+        httpd_register_err_handler(_wifi.webserv, HTTPD_404_NOT_FOUND, http_404_error_handler);
+    }
+    
+    start_dns_server();
+
     _wifi.qrcoder = "WIFI:T:WPA;S:" + _wifi.ssid_cpy + ";P:" + _wifi.pw_cpy + ";H:false;";
     _wifi.event_active = true;
+}
+
+bool custom_wifi_add_handle(std::string path, httpd_method_t met, esp_err_t (*handler)(httpd_req_t*), void* usrdata)
+{
+    wifi_pair gen = { .path = std::move(path), .method = met };
+
+    custom_wifi_del_handle(gen.path, gen.method);
+
+    auto iit = hooks_wifi.insert(hooks_wifi.end(), std::pair<wifi_pair, wifi_handler>{ gen, wifi_handler{} }); // iterator
+
+    //httpd_uri_t handl;// = { .uri = "/", .method = HTTP_GET, .handler = root_get_handler, .user_ctx = nullptr };
+    iit->second.handl.uri = iit->first.path.c_str();
+    iit->second.handl.method = met;
+    iit->second.handl.handler = handler;
+    iit->second.handl.user_ctx = usrdata;
+    return httpd_register_uri_handler(_wifi.webserv, &iit->second.handl) == ESP_OK;
+}
+
+void custom_wifi_del_handle(std::string path, httpd_method_t met)
+{
+    wifi_pair gen = { .path = std::move(path), .method = met };
+
+    if (auto it = std::find_if(hooks_wifi.begin(), hooks_wifi.end(), [&](const std::pair<wifi_pair, wifi_handler>& p) { return p.first == gen; }); it != hooks_wifi.end()) {
+        httpd_unregister_uri_handler(_wifi.webserv, gen.path.c_str(), gen.method);
+        hooks_wifi.erase(it);
+    }
 }
 
 void custom_wifi_stop()
@@ -75,12 +153,8 @@ void custom_wifi_stop()
     ESP_ERROR_CHECK(esp_netif_deinit());
     ESP_ERROR_CHECK(esp_event_loop_delete_default());
     ESP_ERROR_CHECK(nvs_flash_deinit());
+    _wifi.connected_devices = 0;
     _wifi.event_active = false;
-}
-
-void custom_wifi_setup_homepage(const std::string* replace)
-{
-    _wifi.html_followup = replace;
 }
 
 qrcodegen::QrCode custom_wifi_gen_QR()
@@ -96,6 +170,11 @@ const std::string& custom_wifi_get_ssid()
 const std::string& custom_wifi_get_password()
 {
     return _wifi.pw_cpy;
+}
+
+const uint8_t& custom_wifi_get_count()
+{
+    return _wifi.connected_devices;
 }
 
 void __custom_wifi_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data)
