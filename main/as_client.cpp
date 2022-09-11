@@ -1,6 +1,7 @@
 #include "shared/tools.h"
 #include "shared/buttons.h"
 #include "shared/display.h"
+#include "shared/wifictl.h"
 
 const char TAG[] = "MAINCLI";
 

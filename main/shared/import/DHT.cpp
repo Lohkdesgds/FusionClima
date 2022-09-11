@@ -159,27 +159,30 @@ bool DHT::update()
 
 	// == get humidity from Data[0] and Data[1] ==========================
 
-	humidity = dhtData[0];
-	humidity *= 0x100;					// >> 8
-	humidity += dhtData[1];
-	humidity /= 10;						// get the decimal
+	float thumidity = dhtData[0];
+	thumidity *= 0x100;					// >> 8
+	thumidity += dhtData[1];
+	thumidity /= 10;						// get the decimal
 
 	// == get temp from Data[2] and Data[3]
 
-	temperature = dhtData[2] & 0x7F;
-	temperature *= 0x100;				// >> 8
-	temperature += dhtData[3];
-	temperature /= 10;
+	float ttemperature = dhtData[2] & 0x7F;
+	ttemperature *= 0x100;				// >> 8
+	ttemperature += dhtData[3];
+	ttemperature /= 10;
 
 	if(dhtData[2] & 0x80) 			// negative temp, brrr it's freezing
-		temperature *= -1;
+		ttemperature *= -1;
+
 
 
 	// == verify if checksum is ok ===========================================
 	// Checksum is the sum of Data 8 bits masked out 0xFF
 
-	if (dhtData[4] == ((dhtData[0] + dhtData[1] + dhtData[2] + dhtData[3]) & 0xFF))
-		return true;
+	if (dhtData[4] != ((dhtData[0] + dhtData[1] + dhtData[2] + dhtData[3]) & 0xFF))
+		return false;
 
-	return false;
+	humidity = thumidity; // flush
+	temperature = ttemperature; // flush
+	return true;
 }

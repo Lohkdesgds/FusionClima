@@ -7,7 +7,6 @@ extern void as_host();
 
 #include "shared/tools.h"
 #include "shared/buttons.h"
-#include "shared/DHT.h"
 
 const char TAG[] = "MAIN";
 
