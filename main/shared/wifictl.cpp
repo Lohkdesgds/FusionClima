@@ -2,7 +2,7 @@
 
 esp_err_t root_get_handler(httpd_req_t*);
 
-const char *TAG = "WIFI";
+const char *TAGWIFI = "WIFI";
 wifi_info _wifi;
 extern const char root_start[] asm("_binary_root_html_start");
 extern const char root_end[] asm("_binary_root_html_end");
@@ -24,7 +24,7 @@ bool wifi_pair::operator!=(const wifi_pair& oth) const
 // HTTP GET Handler
 esp_err_t root_get_handler(httpd_req_t *req)
 {
-    ESP_LOGI(TAG, "Serve root");
+    ESP_LOGI(TAGWIFI, "Serve root");
     httpd_resp_set_type(req, "text/html");
     httpd_resp_send(req, root_start, root_len);
     return ESP_OK;
@@ -38,7 +38,7 @@ esp_err_t http_404_error_handler(httpd_req_t *req, httpd_err_code_t err)
     httpd_resp_set_hdr(req, "Location", "/");
     // iOS requires content in the response to detect a captive portal, simply redirecting is not sufficient.
     httpd_resp_send(req, "Redirect to the captive portal", HTTPD_RESP_USE_STRLEN);
-    ESP_LOGI(TAG, "Redirecting to root");
+    ESP_LOGI(TAGWIFI, "Redirecting to root");
     return ESP_OK;
 }
 
@@ -96,7 +96,7 @@ void custom_wifi_setup(const std::string& sss, const std::string& pw, const bool
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    ESP_LOGI(TAG, "wifi_init_softap finished. SSID:%s password:%s channel:%d",
+    ESP_LOGI(TAGWIFI, "wifi_init_softap finished. SSID:%s password:%s channel:%d",
              wifi_config.ap.ssid, wifi_config.ap.password, wifi_config.ap.channel);
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
@@ -104,10 +104,10 @@ void custom_wifi_setup(const std::string& sss, const std::string& pw, const bool
     config.lru_purge_enable = true;
 
     // Start the httpd server
-    ESP_LOGI(TAG, "Starting webserver on port: '%d'", config.server_port);
+    ESP_LOGI(TAGWIFI, "Starting webserver on port: '%d'", config.server_port);
     if (httpd_start(&_wifi.webserv, &config) == ESP_OK) {
         // Set URI handlers
-        ESP_LOGI(TAG, "Registering URI handlers");
+        ESP_LOGI(TAGWIFI, "Registering URI handlers");
         //httpd_register_uri_handler(_wifi.webserv, &_webroot);
         if (autohttpfp) custom_wifi_add_handle("/", HTTP_GET, root_get_handler);
         httpd_register_err_handler(_wifi.webserv, HTTPD_404_NOT_FOUND, http_404_error_handler);
@@ -184,18 +184,18 @@ void __custom_wifi_handler(void* arg, esp_event_base_t event_base, int32_t event
     {
         ++_wifi.connected_devices;
         wifi_event_ap_staconnected_t* event = (wifi_event_ap_staconnected_t*) event_data;
-        ESP_LOGI(TAG, "station " MACSTR " join, AID=%d", MAC2STR(event->mac), event->aid);
+        ESP_LOGI(TAGWIFI, "station " MACSTR " join, AID=%d", MAC2STR(event->mac), event->aid);
     }
         break;
     case WIFI_EVENT_AP_STADISCONNECTED:
     {
         --_wifi.connected_devices;
         wifi_event_ap_stadisconnected_t* event = (wifi_event_ap_stadisconnected_t*) event_data;
-        ESP_LOGI(TAG, "station " MACSTR " leave, AID=%d", MAC2STR(event->mac), event->aid);
+        ESP_LOGI(TAGWIFI, "station " MACSTR " leave, AID=%d", MAC2STR(event->mac), event->aid);
     }
         break;
     default:
-        ESP_LOGI(TAG, "station unhandled event (not error)");
+        ESP_LOGI(TAGWIFI, "station unhandled event (not error)");
         break;
     }
 }

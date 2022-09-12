@@ -1,16 +1,4 @@
-#include "shared/tools.h"
-#include "shared/buttons.h"
-#include "shared/display.h"
-#include "shared/import/DHT.h"
-#include "shared/wifictl.h"
-
-enum class host_menus{ QRCODE, TEMPERATURE, LORA, NONE, _MAX };
-
-const char TAG[] = "MAINHST";
-host_menus _menu = host_menus::QRCODE;
-qrcodegen::QrCode* qr = nullptr;
-DHT* hdt = nullptr;
-int64_t last_click = 0;
+#include "main_shared.h"
 
 void handle_click(bool);
 void async_update(void*);
@@ -20,44 +8,57 @@ std::string random_wifi_password();
 
 void as_host()
 {
-    ESP_LOGI(TAG, "Started as host");
+    ESP_LOGI(HOSTTAG, "Started as host");
 
-    ESP_LOGI(TAG, "Enabling LED for boot feedback");
-    spin_on_fail(TAG, custom_gpio_setup(gpio_config_custom().set_pin(led_pin).set_mode(GPIO_MODE_OUTPUT)), "Cannot setup LED");
+    ESP_LOGI(HOSTTAG, "Enabling LED for boot feedback");
+    spin_on_fail(HOSTTAG, custom_gpio_setup(gpio_config_custom().set_pin(led_pin).set_mode(GPIO_MODE_OUTPUT)), "Cannot setup LED");
     custom_digital_write(led_pin, true);
+    
+    ESP_LOGI(HOSTTAG, "Preparing LoRa.");    
+	lora = new LoRa( PIN_NUM_MOSI, PIN_NUM_MISO, PIN_NUM_CLK, PIN_NUM_CS, RESET_PIN, PIN_NUM_DIO, 10 );
 
-    ESP_LOGI(TAG, "Enabling DHT readings");
+    ESP_LOGI(HOSTTAG, "Enabling DHT readings");
     hdt = new DHT(GPIO_NUM_32);
     hdt->update();
     
-    ESP_LOGI(TAG, "Waking up WiFi");
+    ESP_LOGI(HOSTTAG, "Waking up WiFi");
     custom_wifi_setup("potatoed", "arrozfeij"); //random_wifi_name(), random_wifi_password());    
 
-    ESP_LOGI(TAG, "Generating QR");
+    ESP_LOGI(HOSTTAG, "Generating QR");
     qr = new qrcodegen::QrCode(custom_wifi_gen_QR());
     
-    ESP_LOGI(TAG, "Working on button");
-    spin_on_fail(TAG, custom_gpio_setup(gpio_config_custom().set_pin(button_pin).set_trigger(GPIO_INTR_NEGEDGE).set_mode(GPIO_MODE_INPUT)), "Cannot setup button #0");
+    ESP_LOGI(HOSTTAG, "Working on button");
+    spin_on_fail(HOSTTAG, custom_gpio_setup(gpio_config_custom().set_pin(button_pin).set_trigger(GPIO_INTR_NEGEDGE).set_mode(GPIO_MODE_INPUT)), "Cannot setup button #0");
     custom_gpio_map_to_function(button_pin, handle_click);
     custom_enable_gpio_functional(true);
 
-    ESP_LOGI(TAG, "Starting async display");
+    ESP_LOGI(HOSTTAG, "Starting async display");
     u8g2.setup(GPIO_NUM_4, GPIO_NUM_15, GPIO_NUM_16);
     xTaskCreatePinnedToCore(async_update, "dispasync", 3072, nullptr, 4, nullptr, 1);
     custom_digital_write(led_pin, false);
     
-    ESP_LOGI(TAG, "Ready.");
+    ESP_LOGI(HOSTTAG, "Ready.");
 
     while(1) {
-        delay(2000);
+        delay(10000);
         hdt->update();
-        //ESP_LOGI(TAG, "Temp: %.1f; Hum: %.1f", hdt->getTemperature(), hdt->getHumidity());
+
+        if (_menu != host_menus::NONE) custom_digital_write(led_pin, true);
+
+        lora->beginPacket(false);
+        lora->write(("Hello there fellow friend, weather here is " + std::to_string(hdt->getTemperature()) + " degrees celsius and " + std::to_string(hdt->getHumidity()) + " percent umid.").c_str());
+	    lora->endPacket(false);
+
+        delay(10);
+        if (_menu != host_menus::NONE) custom_digital_write(led_pin, false);
+
+        //ESP_LOGI(HOSTTAG, "Temp: %.1f; Hum: %.1f", hdt->getTemperature(), hdt->getHumidity());
     }
 }
 
 void handle_click(bool on)
 {
-    ESP_LOGI(TAG, "Switch triggered");
+    ESP_LOGI(HOSTTAG, "Switch triggered");
     advance_menu();
 }
 
@@ -73,12 +74,12 @@ void async_update(void* unnused) {
     u8g2_uint_t l_max_x = 0;
     std::string line1, line2;
 
-    last_click = esp_timer_get_time();
+    last_click = cpu_seconds();
 
     while(1) {
-        if (esp_timer_get_time() - last_click > timeout_screen_on){
+        if (cpu_seconds() - last_click > timeout_screen_on){
             _menu = host_menus::NONE;
-            last_click = esp_timer_get_time();
+            last_click = cpu_seconds();
         }
         //old_menu = _menu;
 
@@ -139,7 +140,7 @@ void async_update(void* unnused) {
         case host_menus::NONE:
             {
                 u8g2.SetFont(MEGASMOL);
-                if (int64_t _t = esp_timer_get_time(); _t - last_text_upd > 1000000ULL || last_text_upd == 0) {
+                if (auto _t = cpu_seconds(); _t != last_text_upd || last_text_upd == 0) {
                     last_text_upd = _t;
 
                     custom_digital_write(led_pin, true);
@@ -147,9 +148,9 @@ void async_update(void* unnused) {
                     custom_digital_write(led_pin, false);
 
                     line1 = "WiFi: " + std::to_string(custom_wifi_get_count());
+                    insert_format_into(line1, "; %.1f%% %.1f%%", 100.0f * get_cpu_usage_all(), 100.0f * get_ram_usage());
                     line2 = "Uptime: ";// + std::to_string(_t / 1000000ULL) + " s";
 
-                    _t /= 1000000ULL;
                     const int64_t sec = _t % 60;
                     _t -= sec;
                     const int64_t min_raw = _t % 3600; // /60 l8
@@ -169,7 +170,7 @@ void async_update(void* unnused) {
                     off_p[1] = wl2 > wl1 ? 0 : ((wl1 - wl2) / 2);
                     l_max_x = 128 - std::max(wl1, wl2);
                 }
-                if (int64_t _t = esp_timer_get_time(); _t - last_movement > move_screen_sleep || last_movement == 0) {
+                if (int64_t _t = cpu_seconds(); _t - last_movement > move_screen_sleep || last_movement == 0) {
                     last_movement = _t;
 
                     const u8g2_uint_t max_y = 64 - (2 * font_height_megasmol + 1);
@@ -197,7 +198,7 @@ void async_update(void* unnused) {
 }
 
 void advance_menu() {
-    last_click = esp_timer_get_time();
+    last_click = cpu_seconds();
     _menu = static_cast<host_menus>(((static_cast<uint32_t>(_menu)) + 1) % static_cast<size_t>(host_menus::_MAX));
 }
 

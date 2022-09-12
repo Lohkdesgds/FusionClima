@@ -14,10 +14,10 @@ extern "C" {
     #include "lwip/inet.h"
 
     #include "esp_http_server.h"
-    #include "import/dns_server.h" // Source: https://github.com/espressif/esp-idf/tree/master/examples/protocols/http_server/captive_portal/main (ty)
+    #include "import/dns_server.h"
 }
 
-#include "import/qrcodegen.hpp" // Source: https://github.com/nayuki/QR-Code-generator/tree/master/cpp (thank you)
+#include "import/qrcodegen.hpp"
 
 #include <string>
 #include <vector>

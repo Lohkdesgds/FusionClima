@@ -1,0 +1,7 @@
+Sources or references used: (some were modified)
+
+// Captive portal source: https://github.com/espressif/esp-idf/tree/master/examples/protocols/http_server/captive_portal/main
+// QR code: https://github.com/nayuki/QR-Code-generator/tree/master/cpp
+// DHT: https://github.com/iotechbugs/esp32/blob/master/DHT22-cpp/main/DHT.h
+// U8g2 layer: https://github.com/nkolban/esp32-snippets/tree/master/hardware/displays/U8G2
+// LoRa (part): https://github.com/thaaraak/Lora/tree/main/main
