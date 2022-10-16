@@ -1,5 +1,8 @@
+#define WIN32_LEAN_AND_MEAN
 #include "deps/SerialPort.hpp"
 #include "../fc/protocol_combo.h"
+#include <Graphics.h>
+#include <System.h>
 
 int main()
 {

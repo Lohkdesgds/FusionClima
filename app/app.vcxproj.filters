@@ -8,10 +8,58 @@
     <ClCompile Include="..\fc\protocol_combo.cpp">
       <Filter>deps</Filter>
     </ClCompile>
+    <ClCompile Include="deps\AllegroCPP\src\bitmap.cpp">
+      <Filter>deps\AllegroCPP\src</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\AllegroCPP\src\config.cpp">
+      <Filter>deps\AllegroCPP\src</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\AllegroCPP\src\display.cpp">
+      <Filter>deps\AllegroCPP\src</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\AllegroCPP\src\event_queue.cpp">
+      <Filter>deps\AllegroCPP\src</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\AllegroCPP\src\events.cpp">
+      <Filter>deps\AllegroCPP\src</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\AllegroCPP\src\file.cpp">
+      <Filter>deps\AllegroCPP\src</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\AllegroCPP\src\font.cpp">
+      <Filter>deps\AllegroCPP\src</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\AllegroCPP\src\locked_region.cpp">
+      <Filter>deps\AllegroCPP\src</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\AllegroCPP\src\menu.cpp">
+      <Filter>deps\AllegroCPP\src</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\AllegroCPP\src\monitor_info.cpp">
+      <Filter>deps\AllegroCPP\src</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\AllegroCPP\src\thread.cpp">
+      <Filter>deps\AllegroCPP\src</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\AllegroCPP\src\timer.cpp">
+      <Filter>deps\AllegroCPP\src</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\AllegroCPP\src\transform.cpp">
+      <Filter>deps\AllegroCPP\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">
       <UniqueIdentifier>{89169207-e082-40a6-a24d-e21507894544}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\AllegroCPP">
+      <UniqueIdentifier>{0455a0f9-029e-481c-bbd2-e9c53f248189}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\AllegroCPP\src">
+      <UniqueIdentifier>{44995c83-ce70-41af-bd3c-c2a74b1b5f57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\AllegroCPP\include">
+      <UniqueIdentifier>{16cd453a-d1b7-45ab-8390-ecf76a89dbda}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -21,5 +69,92 @@
     <ClInclude Include="..\fc\protocol_combo.h">
       <Filter>deps</Filter>
     </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\audio_mixer.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\audio_sample.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\audio_stream.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\audio_voice.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\bitmap.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\config.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\display.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\display_mode.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\event_queue.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\events.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\file.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\font.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\Graphics.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\locked_region.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\menu.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\monitor_info.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\native_dialog.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\path.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\shader.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\state.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\System.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\thread.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\timer.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\transform.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\user_event.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\utfstring.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\vertex.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\AllegroCPP\include\video.h">
+      <Filter>deps\AllegroCPP\include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

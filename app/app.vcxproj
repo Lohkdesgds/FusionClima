@@ -70,12 +70,72 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Allegro_AddonImage>true</Allegro_AddonImage>
+    <Allegro_AddonTTF>true</Allegro_AddonTTF>
+    <Allegro_AddonPrimitives>true</Allegro_AddonPrimitives>
+    <Allegro_AddonAudio>true</Allegro_AddonAudio>
+    <Allegro_AddonAcodec>true</Allegro_AddonAcodec>
+    <Allegro_AddonPhysfs>true</Allegro_AddonPhysfs>
+    <Allegro_AddonDialog>true</Allegro_AddonDialog>
+    <Allegro_AddonMemfile>true</Allegro_AddonMemfile>
+    <Allegro_AddonFont>true</Allegro_AddonFont>
+    <Allegro_AddonColor>true</Allegro_AddonColor>
+    <Allegro_AddonVideo>true</Allegro_AddonVideo>
+    <IncludePath>$(SolutionDir)deps\AllegroCPP\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Allegro_AddonImage>true</Allegro_AddonImage>
+    <Allegro_AddonTTF>true</Allegro_AddonTTF>
+    <Allegro_AddonPrimitives>true</Allegro_AddonPrimitives>
+    <Allegro_AddonAudio>true</Allegro_AddonAudio>
+    <Allegro_AddonAcodec>true</Allegro_AddonAcodec>
+    <Allegro_AddonPhysfs>true</Allegro_AddonPhysfs>
+    <Allegro_AddonDialog>true</Allegro_AddonDialog>
+    <Allegro_AddonMemfile>true</Allegro_AddonMemfile>
+    <Allegro_AddonFont>true</Allegro_AddonFont>
+    <Allegro_AddonColor>true</Allegro_AddonColor>
+    <Allegro_AddonVideo>true</Allegro_AddonVideo>
+    <Allegro_LibraryType>StaticMonolithRelease</Allegro_LibraryType>
+    <IncludePath>$(SolutionDir)deps\AllegroCPP\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Allegro_AddonImage>true</Allegro_AddonImage>
+    <Allegro_AddonTTF>true</Allegro_AddonTTF>
+    <Allegro_AddonPrimitives>true</Allegro_AddonPrimitives>
+    <Allegro_AddonAudio>true</Allegro_AddonAudio>
+    <Allegro_AddonAcodec>true</Allegro_AddonAcodec>
+    <Allegro_AddonPhysfs>true</Allegro_AddonPhysfs>
+    <Allegro_AddonDialog>true</Allegro_AddonDialog>
+    <Allegro_AddonMemfile>true</Allegro_AddonMemfile>
+    <Allegro_AddonFont>true</Allegro_AddonFont>
+    <Allegro_AddonColor>true</Allegro_AddonColor>
+    <Allegro_AddonVideo>true</Allegro_AddonVideo>
+    <IncludePath>$(SolutionDir)deps\AllegroCPP\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Allegro_AddonImage>true</Allegro_AddonImage>
+    <Allegro_AddonTTF>true</Allegro_AddonTTF>
+    <Allegro_AddonPrimitives>true</Allegro_AddonPrimitives>
+    <Allegro_AddonAudio>true</Allegro_AddonAudio>
+    <Allegro_AddonAcodec>true</Allegro_AddonAcodec>
+    <Allegro_AddonPhysfs>true</Allegro_AddonPhysfs>
+    <Allegro_AddonDialog>true</Allegro_AddonDialog>
+    <Allegro_AddonMemfile>true</Allegro_AddonMemfile>
+    <Allegro_AddonFont>true</Allegro_AddonFont>
+    <Allegro_AddonColor>true</Allegro_AddonColor>
+    <Allegro_AddonVideo>true</Allegro_AddonVideo>
+    <Allegro_LibraryType>StaticMonolithRelease</Allegro_LibraryType>
+    <IncludePath>$(SolutionDir)deps\AllegroCPP\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -90,6 +150,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -104,6 +167,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -118,6 +183,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,14 +196,67 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\fc\protocol_combo.cpp" />
+    <ClCompile Include="deps\AllegroCPP\src\bitmap.cpp" />
+    <ClCompile Include="deps\AllegroCPP\src\config.cpp" />
+    <ClCompile Include="deps\AllegroCPP\src\display.cpp" />
+    <ClCompile Include="deps\AllegroCPP\src\events.cpp" />
+    <ClCompile Include="deps\AllegroCPP\src\event_queue.cpp" />
+    <ClCompile Include="deps\AllegroCPP\src\file.cpp" />
+    <ClCompile Include="deps\AllegroCPP\src\font.cpp" />
+    <ClCompile Include="deps\AllegroCPP\src\locked_region.cpp" />
+    <ClCompile Include="deps\AllegroCPP\src\menu.cpp" />
+    <ClCompile Include="deps\AllegroCPP\src\monitor_info.cpp" />
+    <ClCompile Include="deps\AllegroCPP\src\thread.cpp" />
+    <ClCompile Include="deps\AllegroCPP\src\timer.cpp" />
+    <ClCompile Include="deps\AllegroCPP\src\transform.cpp" />
     <ClCompile Include="deps\SerialPort.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\fc\protocol_combo.h" />
+    <ClInclude Include="deps\AllegroCPP\include\audio_mixer.h" />
+    <ClInclude Include="deps\AllegroCPP\include\audio_sample.h" />
+    <ClInclude Include="deps\AllegroCPP\include\audio_stream.h" />
+    <ClInclude Include="deps\AllegroCPP\include\audio_voice.h" />
+    <ClInclude Include="deps\AllegroCPP\include\bitmap.h" />
+    <ClInclude Include="deps\AllegroCPP\include\config.h" />
+    <ClInclude Include="deps\AllegroCPP\include\display.h" />
+    <ClInclude Include="deps\AllegroCPP\include\display_mode.h" />
+    <ClInclude Include="deps\AllegroCPP\include\events.h" />
+    <ClInclude Include="deps\AllegroCPP\include\event_queue.h" />
+    <ClInclude Include="deps\AllegroCPP\include\file.h" />
+    <ClInclude Include="deps\AllegroCPP\include\font.h" />
+    <ClInclude Include="deps\AllegroCPP\include\Graphics.h" />
+    <ClInclude Include="deps\AllegroCPP\include\locked_region.h" />
+    <ClInclude Include="deps\AllegroCPP\include\menu.h" />
+    <ClInclude Include="deps\AllegroCPP\include\monitor_info.h" />
+    <ClInclude Include="deps\AllegroCPP\include\native_dialog.h" />
+    <ClInclude Include="deps\AllegroCPP\include\path.h" />
+    <ClInclude Include="deps\AllegroCPP\include\shader.h" />
+    <ClInclude Include="deps\AllegroCPP\include\state.h" />
+    <ClInclude Include="deps\AllegroCPP\include\System.h" />
+    <ClInclude Include="deps\AllegroCPP\include\thread.h" />
+    <ClInclude Include="deps\AllegroCPP\include\timer.h" />
+    <ClInclude Include="deps\AllegroCPP\include\transform.h" />
+    <ClInclude Include="deps\AllegroCPP\include\user_event.h" />
+    <ClInclude Include="deps\AllegroCPP\include\utfstring.h" />
+    <ClInclude Include="deps\AllegroCPP\include\vertex.h" />
+    <ClInclude Include="deps\AllegroCPP\include\video.h" />
     <ClInclude Include="deps\SerialPort.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\AllegroDeps.1.13.0\build\native\AllegroDeps.targets" Condition="Exists('packages\AllegroDeps.1.13.0\build\native\AllegroDeps.targets')" />
+    <Import Project="packages\Allegro.5.2.8\build\native\Allegro.targets" Condition="Exists('packages\Allegro.5.2.8\build\native\Allegro.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\AllegroDeps.1.13.0\build\native\AllegroDeps.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\AllegroDeps.1.13.0\build\native\AllegroDeps.targets'))" />
+    <Error Condition="!Exists('packages\Allegro.5.2.8\build\native\Allegro.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Allegro.5.2.8\build\native\Allegro.targets'))" />
+  </Target>
 </Project>
