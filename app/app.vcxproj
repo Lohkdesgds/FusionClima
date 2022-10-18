@@ -243,6 +243,7 @@
     <ClInclude Include="deps\AllegroCPP\include\vertex.h" />
     <ClInclude Include="deps\AllegroCPP\include\video.h" />
     <ClInclude Include="deps\SerialPort.hpp" />
+    <ClInclude Include="sources\fusion_clima.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
