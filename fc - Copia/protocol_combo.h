@@ -8,17 +8,11 @@
 
 namespace Comm {
   extern const char protID[];
-  
-  enum class request_id : uint8_t {TEMPHUMUPDATE = 1, REQUESTDATA = 2};
 
   struct generic_format { // received/sent via LORA
     uint64_t ident = 0; // mac
-    uint8_t reqtype = 0; // for later use, if needed
-    union raw {
-        struct { uint16_t temp_x10 = 0, hum_x10 = 0; } th; // temp and hum
-    } data{};
+    uint16_t temp_x10 = 0, hum_x10 = 0;
   };
-  
 
   struct usb_format_raw {
     char trigg[16]{0}; // should have protID

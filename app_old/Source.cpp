@@ -2,81 +2,87 @@
 #include "sources/fusion_clima.h" // image
 #include "deps/SerialPort.hpp"
 #include "../fc/protocol_combo.h"
-#include <Graphics.h>
-#include <System.h>
+//#include <Graphics.h>
+//#include <System.h>
 #include <memory>
 #include <unordered_map>
 
-using namespace AllegroCPP;
-
-enum class pred_menus : uint16_t {NONE, EXIT};
-enum class states_draw : uint16_t {LAUNCHING, COMMUNICATION};
-
-const std::unordered_map<states_draw, double> _autotime = {
-	{states_draw::LAUNCHING, 5.0},
-	{states_draw::COMMUNICATION, 0.0}
-};
-
-constexpr float fix(const float f) { return 0.5f + 0.5f * f; }
-double gettime(const states_draw& d) { const auto i = _autotime.find(d); if (i != _autotime.end()) return i->second; return 0.0; }
-
-
-int main()
+int main(int argc, char* argv)
 {
-	Display disp({720, 480}, "FusionApp");
-	Event_queue evqu;
-	Font font;
-	File_tmp fp_fusionclima;
-
-	fp_fusionclima.write(Sources::png_fusionclima, std::size(Sources::png_fusionclima));
-	fp_fusionclima.flush();
-
-	Bitmap bmp_fc(fp_fusionclima);
-
-	states_draw stat = states_draw::LAUNCHING;
-	double stat_time_ctl = 0.0;
-
-	auto dt = std::chrono::high_resolution_clock::now();
-	double smooth = 0.0;
-
-	evqu << disp;
-
-	while (disp.valid()) {
-		if (const auto ev = evqu.get_next_event(); ev)
-		{
-			switch (ev.get().type) {
-			case ALLEGRO_EVENT_DISPLAY_CLOSE:
-				disp.destroy();
-				break;
-			}
-		}
-		else {
-			switch (stat) {
-			case states_draw::LAUNCHING:
-				if (Time::get_time() - stat_time_ctl > gettime(stat)){
-					stat = states_draw::COMMUNICATION;
-				}
-				else {
-
-				}
-				break;
-			case states_draw::COMMUNICATION:
-			{
-				disp.clear_to_color(al_map_rgb_f(fix(std::sin(Time::get_time())), fix(std::cos(0.85f * Time::get_time())), fix(std::sin(0.45f + 1.1f * Time::get_time()))));
-
-			}
-				break;
-			}
-
-			const double weight = 0.5 * fabs(smooth) + 1.0;
-			smooth = (weight * smooth + 1.0 / std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1>>>(std::chrono::high_resolution_clock::now() - std::exchange(dt, std::chrono::high_resolution_clock::now())).count()) / (weight + 1.0);
-			font.draw({ 0.0f,0.0f }, ("FPS: " + std::to_string(smooth)));
-
-			disp.flip();
-		}
-	}
 
 }
+
+
+//using namespace AllegroCPP;
+//
+//enum class pred_menus : uint16_t {NONE, EXIT};
+//enum class states_draw : uint16_t {LAUNCHING, COMMUNICATION};
+//
+//const std::unordered_map<states_draw, double> _autotime = {
+//	{states_draw::LAUNCHING, 5.0},
+//	{states_draw::COMMUNICATION, 0.0}
+//};
+//
+//constexpr float fix(const float f) { return 0.5f + 0.5f * f; }
+//double gettime(const states_draw& d) { const auto i = _autotime.find(d); if (i != _autotime.end()) return i->second; return 0.0; }
+
+
+//int main()
+//{
+//	Display disp({720, 480}, "FusionApp");
+//	Event_queue evqu;
+//	Font font;
+//	File_tmp fp_fusionclima;
+//	
+//	fp_fusionclima.write(Sources::png_fusionclima, std::size(Sources::png_fusionclima));
+//	fp_fusionclima.flush();
+//	
+//	Bitmap bmp_fc(fp_fusionclima);
+//	
+//	states_draw stat = states_draw::LAUNCHING;
+//	double stat_time_ctl = 0.0;
+//	
+//	auto dt = std::chrono::high_resolution_clock::now();
+//	double smooth = 0.0;
+//	
+//	evqu << disp;
+//	
+//	while (disp.valid()) {
+//		if (const auto ev = evqu.get_next_event(); ev)
+//		{
+//			switch (ev.get().type) {
+//			case ALLEGRO_EVENT_DISPLAY_CLOSE:
+//				disp.destroy();
+//				break;
+//			}
+//		}
+//		else {
+//			switch (stat) {
+//			case states_draw::LAUNCHING:
+//				if (Time::get_time() - stat_time_ctl > gettime(stat)){
+//					stat = states_draw::COMMUNICATION;
+//				}
+//				else {
+//	
+//				}
+//				break;
+//			case states_draw::COMMUNICATION:
+//			{
+//				disp.clear_to_color(al_map_rgb_f(fix(std::sin(Time::get_time())), fix(std::cos(0.85f * Time::get_time())), fix(std::sin(0.45f + 1.1f * Time::get_time()))));
+//	
+//			}
+//				break;
+//			}
+//	
+//			const double weight = 0.5 * fabs(smooth) + 1.0;
+//			smooth = (weight * smooth + 1.0 / std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1>>>(std::chrono::high_resolution_clock::now() - std::exchange(dt, std::chrono::high_resolution_clock::now())).count()) / (weight + 1.0);
+//			font.draw({ 0.0f,0.0f }, ("FPS: " + std::to_string(smooth)));
+//	
+//			disp.flip();
+//		}
+//	}
+//
+//}
 
 //void amain(bool&);
 //

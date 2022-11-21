@@ -159,6 +159,9 @@
     <ClInclude Include="sources\fusion_clima.h">
       <Filter>sources</Filter>
     </ClInclude>
+    <ClInclude Include="sources\esp32_comm.h">
+      <Filter>sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

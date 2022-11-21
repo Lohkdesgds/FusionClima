@@ -10,7 +10,6 @@ const uint8_t pin_LED = 25;
 #define PRTLN(...) { Serial.printf(__VA_ARGS__); Serial.print('\n'); }
 #define AUTOF(...) [&]{ static char _buf[96]; snprintf(_buf, 96, __VA_ARGS__); return _buf; }()
 #define DISPLAYBLOCK(...){ m_dsp.clearBuffer(); __VA_ARGS__; m_dsp.sendBuffer(); }
-template<typename T> inline T exchange(T& src, T to) { T _cpy = (T&&)src; src = to; return _cpy; }
 
 void as_dongle(void*); // as_dongle.cpp
 void as_monitor(void*); // as_monitor.cpp
