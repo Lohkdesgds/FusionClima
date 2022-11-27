@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <META NAME="KEYWORDS" CONTENT="html, css, javascript">
+    <meta name="rating" content="general">
+    <meta name="generator" content="Notepad++">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta name="copyright" content="none">
+    <meta charset="utf-8">
+    <meta http-equiv="content-language" content="pt-br">
+    <meta name="author" content="Lohkdesgds Hangi Lhuminury">
+    <meta name="description" content="Lohk's">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>FusionClima</title>
+    
+    <link href="https://fonts.googleapis.com/css?family=SF+Pro+Display&display=swap" rel="stylesheet" />    
+</head>
+<body style="background: rgba(248,248,248,1); ">
+    <p>Temperatura: <span id='temphere'>--.-</span> ºC</p>
+    <p>Umidade: <span id='humhere'>--.-</span> %</p>
+    
+
+</body>
+
+<script>
+function ReplaceID(itemID, what)
+{
+    let it = document.getElementById(itemID);
+    it.innerHTML = what;
+}
+function Get(theUrl, callback)
+{
+    let xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    }
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.send(null);
+}
+
+function autoUpdate()
+{
+    Get("/tempnow", function(data){
+        ReplaceID("temphere", data);
+        Get("/humnow", function(data){
+            ReplaceID("humhere", data);
+            setTimeout(autoUpdate, 5000);
+        });
+    });    
+}
+
+autoUpdate();
+</script>

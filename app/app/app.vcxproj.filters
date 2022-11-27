@@ -10,6 +10,8 @@
       <Filter>external</Filter>
     </ClCompile>
     <ClCompile Include="display.cpp" />
+    <ClCompile Include="handlers.cpp" />
+    <ClCompile Include="tools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -26,6 +28,8 @@
     <ClInclude Include="image_bg.h">
       <Filter>imgraw</Filter>
     </ClInclude>
+    <ClInclude Include="handlers.h" />
+    <ClInclude Include="tools.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">
