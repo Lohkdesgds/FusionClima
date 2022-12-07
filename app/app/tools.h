@@ -1,6 +1,7 @@
 #pragma once
+#define WIN32_LEAN_AND_MEAN
 
-#include <httplib.h>
+#include <cpp-httplib/httplib.h>
 #include <time.h>
 
 const std::string CURRDATE = __TIMESTAMP__;

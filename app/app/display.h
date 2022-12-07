@@ -1,4 +1,5 @@
 #pragma once
+#define WIN32_LEAN_AND_MEAN
 
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>

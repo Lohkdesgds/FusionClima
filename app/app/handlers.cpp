@@ -4,9 +4,11 @@ void _internal_logger(const std::string& textl) {
 	static std::mutex mu;
 	std::lock_guard<std::mutex> l(mu);
 	MAKEDAY();
-	const char* _tmp = asctime(&tm);
+	char _tmp[96];
+	errno_t err = asctime_s(_tmp, &tm);
+
 	std::string date = "unknown";
-	if (_tmp) {
+	if (!err) {
 		date = _tmp;
 		for (auto& i : date) if (i == '\n') i = '\0';
 	}
@@ -90,11 +92,26 @@ httplib::Server::HandlerResponse pre_router_handler(const httplib::Request& req,
 		return httplib::Server::HandlerResponse::Handled;
 	}
 	else if (req.path == "/tempnow") {
-		res.set_content(std::to_string(esp.get().data.data.th.temp_x10 * 0.1f), "text/plain");
+		float t, h, p;
+		ai_get(t, h, p);
+		
+		res.set_content(std::to_string(static_cast<int>(t)), "text/plain");
+		//res.set_content(std::to_string(static_cast<int>(esp.get().data.data.th.temp_x10 * 0.1f)), "text/plain");
 		return httplib::Server::HandlerResponse::Handled;
 	}
 	else if (req.path == "/humnow") {
-		res.set_content(std::to_string(esp.get().data.data.th.hum_x10 * 0.1f), "text/plain");
+		float t, h, p;
+		ai_get(t, h, p);
+		
+		res.set_content(std::to_string(static_cast<int>(h)), "text/plain");
+		//res.set_content(std::to_string(static_cast<int>(esp.get().data.data.th.hum_x10 * 0.1f)), "text/plain");
+		return httplib::Server::HandlerResponse::Handled;
+	}
+	else if (req.path == "/prevnow") {
+		float t, h, p;
+		ai_get(t, h, p);
+
+		res.set_content(std::to_string(static_cast<int>(p)), "text/plain");
 		return httplib::Server::HandlerResponse::Handled;
 	}
 	else if (httplib::detail::is_dir(root_path_public + req.path)) {
@@ -155,3 +172,25 @@ void error_handler(const httplib::Request& req, httplib::Response& res) {
 /*void post_routing_handler(const httplib::Request& req, httplib::Response& res) {
 	find_and_replace_all(res.body);
 }*/
+
+// add temp, hum
+void ai_add(const float a, const float b)
+{
+	_internal_logger("[APP] Adding new info received...");
+	Lunaris::process_sync proc(app_path_call, { "add", std::to_string(a), std::to_string(b)}, Lunaris::process_sync::mode::READWRITE);
+	if (!proc.valid()) return;
+
+	while (proc.is_running()) std::this_thread::sleep_for(std::chrono::milliseconds(200));
+}
+
+// get temp, hum, prev
+void ai_get(float& a, float& b, float& c)
+{
+	a = b = c = 0.0f;
+	_internal_logger("[APP] Retrieving data...");
+	Lunaris::process_sync proc(app_path_call, { "show" }, Lunaris::process_sync::mode::READWRITE);
+
+	std::string buf = proc.read();
+
+	sscanf_s(buf.c_str(), "%f %f %f", &a, &b, &c);
+}

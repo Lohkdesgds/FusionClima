@@ -29,7 +29,10 @@ bool ESP32_interface::search_and_setup(const bool forcereset)
 			std::lock_guard<std::mutex> l(m_raw_data_mtx);
 			const auto lastid = m_raw_data_buf.pck_id;
 			memcpy(&m_raw_data_buf, _src.data(), sizeof(m_raw_data_buf));
-			if (lastid != m_raw_data_buf.pck_id) m_last_update = std::chrono::system_clock::now();
+			if (lastid != m_raw_data_buf.pck_id) {
+				m_last_update = std::chrono::system_clock::now();
+				if (m_func_news) m_func_news(m_raw_data_buf);
+			}
 			_src.erase(_src.begin(), _src.begin() + sizeof(m_raw_data_buf));
 		});
 
@@ -69,4 +72,10 @@ ESP32_interface::operator bool() const
 bool ESP32_interface::valid() const
 {
 	return m_async.valid();
+}
+
+void ESP32_interface::on_new_update(std::function<void(const Comm::usb_format_raw&)> f)
+{
+	std::lock_guard<std::mutex> l(m_raw_data_mtx);
+	m_func_news = f;
 }

@@ -1,4 +1,5 @@
 #pragma once
+#define WIN32_LEAN_AND_MEAN
 
 #include "deps/SerialPort.hpp"
 #include "protocol_combo.h"
@@ -18,11 +19,14 @@ public:
 
 	operator bool() const;
 	bool valid() const;
+
+	void on_new_update(std::function<void(const Comm::usb_format_raw&)>);
 private:
 	AsyncSerial m_async{ esp32_buf_max };
 	size_t m_port = 0;
 
 	mutable std::mutex m_raw_data_mtx;
 	Comm::usb_format_raw m_raw_data_buf;
+	std::function<void(const Comm::usb_format_raw&)> m_func_news;
 	std::chrono::system_clock::time_point m_last_update = std::chrono::system_clock::now();
 };
