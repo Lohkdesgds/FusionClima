@@ -17,12 +17,13 @@ int main(int argc, char* argv[])
 	}
 
 	if (args.get_safe(0) == "add") {
-		if (args.size() != 3) return 2;
+		if (args.size() != 5) return 2;
+		// args: day time hum temp (invertido pq assim foi feito no python, tah difícil)
 
 		std::fstream fp("dump.txt", std::ios::binary | std::ios::out);
 		if (!fp) return 1;
 
-		fp << args.get_safe(1) << " " << args.get_safe(2);
+		fp << args.get_safe(4) << " " << args.get_safe(3) << "\nDEBUG: date hour " << args.get_safe(1) << " " << args.get_safe(2);
 		fp.close();
 	}
 	if (args.get_safe(0) == "show") {

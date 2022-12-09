@@ -7,10 +7,10 @@
 const std::string CURRDATE = __TIMESTAMP__;
 
 #ifdef _WIN32
-#define GMTIM(A,B) gmtime_s(B,A)
+#define GMTIM(A,B) localtime_s(B,A)
 #define BADGM(X) (X != 0)
 #else
-#define GMTIM(A,B) gmtime_r(A,B)
+#define GMTIM(A,B) localtime_r(A,B)
 #define BADGM(X) (!X)
 #endif
 

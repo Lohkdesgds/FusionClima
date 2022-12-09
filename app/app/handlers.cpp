@@ -177,7 +177,15 @@ void error_handler(const httplib::Request& req, httplib::Response& res) {
 void ai_add(const float a, const float b)
 {
 	_internal_logger("[APP] Adding new info received...");
-	Lunaris::process_sync proc(app_path_call, { "add", std::to_string(a), std::to_string(b)}, Lunaris::process_sync::mode::READWRITE);
+
+	MAKEDAY();
+
+	char arg1[128]{};
+	char arg2[128]{};
+	sprintf_s(arg1, "%02d%02d%04d", tm.tm_mday, tm.tm_mon, tm.tm_year + 1900);
+	sprintf_s(arg2, "%02d00", tm.tm_hour);
+
+	Lunaris::process_sync proc(app_path_call, { "add", arg1, arg2, std::to_string(b), std::to_string(a)}, Lunaris::process_sync::mode::READWRITE);
 	if (!proc.valid()) return;
 
 	while (proc.is_running()) std::this_thread::sleep_for(std::chrono::milliseconds(200));
