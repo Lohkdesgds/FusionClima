@@ -26,11 +26,9 @@ int main(int argc, char* argv[])
 
 		{
 			std::string tmp;
-			std::string comboed;
 			while (ss >> tmp) {
 				margs.push_back(tmp);
 			}
-			if (comboed.size()) margs.push_back("\"" + comboed);
 		}
 		for (auto& i : margs) {
 			size_t p = 0;
