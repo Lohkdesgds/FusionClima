@@ -92,26 +92,28 @@ httplib::Server::HandlerResponse pre_router_handler(const httplib::Request& req,
 		return httplib::Server::HandlerResponse::Handled;
 	}
 	else if (req.path == "/tempnow") {
-		float t, h, p;
-		ai_get(t, h, p);
+		//float t, h, p;
+		//ai_get(t, h, p);
 		
-		res.set_content(std::to_string(static_cast<int>(t)), "text/plain");
+		res.set_content(std::to_string(static_cast<int>(esp.get().data.data.th.temp_x10 * 0.1f)), "text/plain");
 		//res.set_content(std::to_string(static_cast<int>(esp.get().data.data.th.temp_x10 * 0.1f)), "text/plain");
 		return httplib::Server::HandlerResponse::Handled;
 	}
 	else if (req.path == "/humnow") {
-		float t, h, p;
-		ai_get(t, h, p);
+		//float t, h, p;
+		//ai_get(t, h, p);
 		
-		res.set_content(std::to_string(static_cast<int>(h)), "text/plain");
+		res.set_content(std::to_string(static_cast<int>(esp.get().data.data.th.hum_x10 * 0.1f)), "text/plain");
 		//res.set_content(std::to_string(static_cast<int>(esp.get().data.data.th.hum_x10 * 0.1f)), "text/plain");
 		return httplib::Server::HandlerResponse::Handled;
 	}
 	else if (req.path == "/prevnow") {
-		float t, h, p;
-		ai_get(t, h, p);
+		//float t, h, p;
+		//ai_get(t, h, p);
+		float p = 0;
+		ai_get_latest(p);
 
-		res.set_content(std::to_string(static_cast<int>(p)), "text/plain");
+		res.set_content(std::to_string(static_cast<int>(p)) + "." + std::to_string(static_cast<int>(p * 10.0f) % 10), "text/plain");
 		return httplib::Server::HandlerResponse::Handled;
 	}
 	else if (httplib::detail::is_dir(root_path_public + req.path)) {
@@ -182,23 +184,59 @@ void ai_add(const float a, const float b)
 
 	char arg1[128]{};
 	char arg2[128]{};
-	sprintf_s(arg1, "%02d%02d%04d", tm.tm_mday, tm.tm_mon, tm.tm_year + 1900);
+	sprintf_s(arg1, "%02d%02d%04d", tm.tm_mon + 1, tm.tm_mday, tm.tm_year + 1900);
 	sprintf_s(arg2, "%02d00", tm.tm_hour);
 
-	Lunaris::process_sync proc(app_path_call, { "add", arg1, arg2, std::to_string(b), std::to_string(a)}, Lunaris::process_sync::mode::READWRITE);
+	Lunaris::process_sync proc(app_path_call, { "main_deploy.py", "pred", ("\"" + std::string(arg1) + " " + arg2 + " " + std::to_string(a) + " " + std::to_string(b) + "\"")}, Lunaris::process_sync::mode::READWRITE);
+
+	while (proc.has_read() || proc.is_running()) {
+		std::string buf = proc.read();
+		_internal_logger("[INTERNAL] call output: " + buf);
+	}
+
+	//sprintf_s(arg1, "%02d%02d%04d", tm.tm_mday, tm.tm_mon, tm.tm_year + 1900);
+	//sprintf_s(arg2, "%02d00", tm.tm_hour);
+	//
+	//Lunaris::process_sync proc(app_path_call, { "add", arg1, arg2, std::to_string(b), std::to_string(a)}, Lunaris::process_sync::mode::READWRITE);
+
 	if (!proc.valid()) return;
 
-	while (proc.is_running()) std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	while (proc.is_running()) std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
-// get temp, hum, prev
-void ai_get(float& a, float& b, float& c)
+//// get temp, hum, prev
+//void ai_get(float& a, float& b, float& c)
+//{
+//	a = b = c = 0.0f;
+//	_internal_logger("[APP] Retrieving data...");
+//	Lunaris::process_sync proc(app_path_call, { "show" }, Lunaris::process_sync::mode::READWRITE);
+//
+//	std::string buf = proc.read();
+//
+//	sscanf_s(buf.c_str(), "%f %f %f", &a, &b, &c);
+//}
+
+void ai_get_latest(float& val)
 {
-	a = b = c = 0.0f;
-	_internal_logger("[APP] Retrieving data...");
-	Lunaris::process_sync proc(app_path_call, { "show" }, Lunaris::process_sync::mode::READWRITE);
+	val = -1;
+	std::fstream f(app_file_read, std::ios::binary | std::ios::in);
+	if (!f) return;
 
-	std::string buf = proc.read();
+	f.seekg(-1, std::ios::end);
 
-	sscanf_s(buf.c_str(), "%f %f %f", &a, &b, &c);
+	while (f.get() != '[' && f.good() && f) {
+		f.seekg(-2, std::ios::cur);
+	}
+
+	if (!f) return;
+
+	std::string dat;
+	while (1) {
+		int a = f.get();
+		if (a < 0) return;
+		if (a == ']') break;
+		dat += a;
+	}
+
+	val = std::atof(dat.c_str());
 }
