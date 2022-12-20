@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="esp32_interface.cpp" />
+    <ClCompile Include="deps\SerialPort.cpp">
+      <Filter>deps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\fc\protocol_combo.cpp">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="display.cpp" />
+    <ClCompile Include="handlers.cpp" />
+    <ClCompile Include="tools.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="esp32_interface.h" />
+    <ClInclude Include="deps\SerialPort.hpp">
+      <Filter>deps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\fc\protocol_combo.h">
+      <Filter>external</Filter>
+    </ClInclude>
+    <ClInclude Include="display.h" />
+    <ClInclude Include="image_bg.h">
+      <Filter>imgraw</Filter>
+    </ClInclude>
+    <ClInclude Include="handlers.h" />
+    <ClInclude Include="tools.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="deps">
+      <UniqueIdentifier>{96f22674-bc99-4a69-924a-686a587782db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="external">
+      <UniqueIdentifier>{ca37fb0c-1fed-4055-becf-b97ba7453cdf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgraw">
+      <UniqueIdentifier>{8c60f85c-a45e-4a6e-82c5-64f5caf1cc41}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

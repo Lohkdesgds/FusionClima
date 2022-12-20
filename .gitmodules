@@ -1,0 +1,6 @@
+[submodule "app/app/deps/cpp-httplib"]
+	path = app/app/deps/cpp-httplib
+	url = https://github.com/yhirose/cpp-httplib
+[submodule "app/app/deps/Lunaris-Process"]
+	path = app/app/deps/Lunaris-Process
+	url = https://github.com/LunarisLib/Lunaris-Process

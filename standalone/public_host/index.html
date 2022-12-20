@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <META NAME="KEYWORDS" CONTENT="html, css, javascript">
+    <meta name="rating" content="general">
+    <meta name="generator" content="Notepad++">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta name="copyright" content="none">
+    <meta charset="utf-8">
+    <meta http-equiv="content-language" content="pt-br">
+    <meta name="author" content="Lohkdesgds Hangi Lhuminury">
+    <meta name="description" content="Lohk's">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="/images/fusionclima_icon.png">
+    
+    <title>FusionClima</title>
+    
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/extra.css">
+    <script type="text/javascript" src="/js/funcs.js"></script>
+</head>
+<body>
+<div class='title_fc'>
+    <img src="/images/fusionclima_textlogo.svg" style="height:50px">
+</div>
+<div class="container">
+
+    <div class="each_block" id='disconnectedid' style="display:block">
+    <h1 style="color: #770000">Dispositivo desconectado!</h1>
+    </div>
+     
+    <div class="aula-block each_block blank_bg">
+        <h3>Temperatura atual</h3>
+        <br class="small_br"></br>
+        <div>
+            <img src="/images/temperatura.png" style="height=70px; top: 50%">
+            <span style="color: #ff8b00; font-size: 70px; position: relative; top: -40px; left: 10px"><span id='temphere'>--.-</span> ºC</span>
+        </div>
+    </div>
+    
+    <div class="aula-block each_block blank_bg">
+        <h3>Umidade atual</h3>
+        <div class="small_br" style="margin-top: 2.9em;"></div>
+        <div>
+            <img src="/images/gota_chuva.png" style="height=70px; top: 50%">
+            <span style="color: #0065ff; font-size: 70px; position: relative; top: -37px; left: 10px"><span id='humhere'>--.-</span> %</span>
+        </div>
+    </div>
+    
+    <div class="aula-block each_block blank_bg">
+        <h3>Chances de chuva</h3>
+        <div class="small_br" style="margin-top: 2.22em;"></div>
+        <div>
+            <img src="/images/prev.png" style="height=70px; top: 50%">
+            <span style="color: #80c7ea; font-size: 70px; position: relative; top: -37px; left: 10px"><span id='prevhere'>--.-</span> mm</span>
+        </div>
+    </div>
+    
+</div>
+
+</body>
+
+<script>
+autoUpdate(5000, "disconnectedid", "/tempnow", "temphere", "/humnow", "humhere", "/prevnow", "prevhere");
+</script>
